@@ -1,0 +1,72 @@
+name: Davis Video Pipeline
+
+on:
+  schedule:
+    # Runs at 5am, 11am, 5pm, 11pm UTC (6am, 12pm, 6pm, midnight WAT)
+    - cron: "0 5,11,17,23 * * *"
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to post to (youtube/instagram/facebook/all)"
+        required: false
+        default: "all"
+      dry_run:
+        description: "Dry run (true/false)"
+        required: false
+        default: "false"
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create tmp directory
+        run: mkdir -p tmp footage_cache
+
+      - name: Run video pipeline
+        env:
+          WHATSAPP_INVITE_LINK: ${{ secrets.WHATSAPP_INVITE_LINK }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          YOUTUBE_CLIENT_SECRETS_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRETS_JSON }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          FB_ACCESS_TOKEN: ${{ secrets.FB_ACCESS_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          PLATFORM="${{ github.event.inputs.platform || 'all' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            python run.py --dry-run --platform "$PLATFORM"
+          else
+            python run.py --platform "$PLATFORM"
+          fi
+
+      - name: Cache footage for next run
+        uses: actions/cache@v4
+        with:
+          path: footage_cache/
+          key: footage-cache-${{ runner.os }}-${{ hashFiles('footage_cache/**') }}
+          restore-keys: |
+            footage-cache-${{ runner.os }}-

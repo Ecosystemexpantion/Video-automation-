@@ -1,0 +1,26 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+WHATSAPP_INVITE_LINK = os.environ["WHATSAPP_INVITE_LINK"]
+
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+PEXELS_API_KEY = os.environ["PEXELS_API_KEY"]
+
+YOUTUBE_CLIENT_SECRETS_JSON = os.environ.get("YOUTUBE_CLIENT_SECRETS_JSON", "")
+
+INSTAGRAM_ACCESS_TOKEN = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
+INSTAGRAM_BUSINESS_ACCOUNT_ID = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+
+FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "")
+FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "")
+
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+
+TTS_VOICE = os.environ.get("TTS_VOICE", "en-US-AriaNeural")
+VIDEO_WIDTH = 1080
+VIDEO_HEIGHT = 1920
+VIDEO_FPS = 30
+TARGET_DURATION = 45

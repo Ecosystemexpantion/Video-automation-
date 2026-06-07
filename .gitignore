@@ -1,0 +1,16 @@
+.env
+*.mp4
+*.mp3
+*.wav
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+logs/*.log
+logs/*.json
+tmp/
+footage_cache/
+node_modules/
+.next/
+davis_app/.env.local
+token.json

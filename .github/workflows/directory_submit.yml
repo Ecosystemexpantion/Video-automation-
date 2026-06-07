@@ -1,0 +1,34 @@
+name: Submit to WhatsApp Directories
+
+on:
+  workflow_dispatch:
+
+jobs:
+  submit-directories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: playwright install chromium
+
+      - name: Submit to directories
+        env:
+          WHATSAPP_INVITE_LINK: ${{ secrets.WHATSAPP_INVITE_LINK }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GEMINI_API_KEY: "placeholder"
+          PEXELS_API_KEY: "placeholder"
+        run: python platforms/directory_submitter.py
