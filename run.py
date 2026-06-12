@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+import time
 import traceback
 
 from database.supabase_client import get_next_topic, mark_topic_used, log_post, seed_topics
@@ -15,87 +16,117 @@ from platforms.facebook_poster import post_video
 from templates.video_topics import TOPICS, get_pexels_keywords
 
 
+def _upload_with_retry(fn, *args, retries=3, **kwargs):
+    for attempt in range(retries):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            if attempt < retries - 1:
+                wait = 2 ** attempt
+                print(f"    Retry {attempt + 1}/{retries - 1} in {wait}s: {e}")
+                time.sleep(wait)
+            else:
+                raise
+
+
 def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
     if platforms is None:
         platforms = ["youtube", "instagram", "facebook"]
 
-    print("\n=== Davis Video Pipeline Starting ===")
+    print("\n" + "=" * 45)
+    print("  Davis Video Pipeline")
+    print("=" * 45)
 
     topic_row = get_next_topic()
     if not topic_row:
-        print("[WARN] No topics in DB. Seeding topics...")
+        print("[WARN] No topics in DB — seeding...")
         seed_topics(TOPICS)
         topic_row = get_next_topic()
 
     topic = topic_row["topic"]
     topic_id = topic_row["id"]
-    print(f"[1/6] Topic: {topic}")
+    print(f"\n[1/6] Topic selected:\n      {topic}")
 
     if dry_run:
-        print(f"[DRY RUN] Would generate script, voice, footage, video, and post to: {platforms}")
+        print(f"\n[DRY RUN] Would generate script, voice, footage, video")
+        print(f"[DRY RUN] Would post to: {', '.join(platforms)}")
+        print("\n[DRY RUN] Pipeline test complete — no real actions taken.\n")
         return
 
-    print("[2/6] Generating script with Gemini...")
+    print("\n[2/6] Generating script with Claude Haiku...")
     script = generate_script(topic)
     mark_topic_used(topic_id)
+    print(f"      Title: {script['title']}")
 
-    print("[3/6] Generating voiceover with Edge TTS...")
+    print("\n[3/6] Generating voiceover with Edge TTS...")
     audio_path = generate_voiceover(script["full_script"])
+    print(f"      Saved: {audio_path}")
 
     keywords = get_pexels_keywords(topic)
-    print(f"[4/6] Fetching background footage (keywords: {keywords[0]})...")
+    print(f"\n[4/6] Fetching background footage ({keywords[0]})...")
     footage_path = fetch_background_footage(keywords[0])
+    print(f"      Saved: {footage_path}")
 
-    print("[5/6] Assembling video...")
+    print("\n[5/6] Assembling video...")
     video_path = assemble_video(
         footage_path=footage_path,
         audio_path=audio_path,
         title=script["title"],
         full_script=script["full_script"],
     )
-    print(f"  Video saved: {video_path}")
+    print(f"      Saved: {video_path}")
 
-    print("[6/6] Uploading to platforms...")
+    print("\n[6/6] Uploading to platforms...")
+    results = {}
 
     for platform in platforms:
         try:
             if platform == "youtube":
-                url = upload_short(
+                url = _upload_with_retry(
+                    upload_short,
                     video_path=video_path,
                     title=script["title"],
                     description=script["description"],
                     hashtags=script["hashtags"],
                     topic=topic,
                 )
-                log_post("youtube", topic, script["title"], video_url=url, status="success")
-                print(f"  [YouTube] Uploaded: {url}")
-
             elif platform == "instagram":
-                url = upload_reel(
+                url = _upload_with_retry(
+                    upload_reel,
                     video_path=video_path,
                     caption=f"{script['title']}\n\n{script['description']}",
                     hashtags=script["hashtags"],
                 )
-                log_post("instagram", topic, script["title"], video_url=url, status="success")
-                print(f"  [Instagram] Uploaded: {url}")
-
             elif platform == "facebook":
-                url = post_video(
+                url = _upload_with_retry(
+                    post_video,
                     video_path=video_path,
                     title=script["title"],
                     description=script["description"],
                     hashtags=script["hashtags"],
                 )
-                log_post("facebook", topic, script["title"], video_url=url, status="success")
-                print(f"  [Facebook] Uploaded: {url}")
+            else:
+                continue
+
+            log_post(platform, topic, script["title"], video_url=url, status="success")
+            results[platform] = "success"
+            print(f"      [{platform.upper()}] OK — {url}")
 
         except Exception as e:
-            error_msg = traceback.format_exc()
-            print(f"  [{platform.upper()}] FAILED: {e}")
             log_post(platform, topic, script.get("title", topic), status="failed", error=str(e))
+            results[platform] = f"failed: {e}"
+            print(f"      [{platform.upper()}] FAILED — {e}")
+            traceback.print_exc()
 
     _cleanup_tmp()
-    print("\n=== Pipeline Complete ===\n")
+
+    successes = sum(1 for v in results.values() if v == "success")
+    print(f"\n{'=' * 45}")
+    print(f"  Pipeline complete — {successes}/{len(platforms)} platforms posted")
+    print(f"{'=' * 45}\n")
+
+    if successes == 0 and len(platforms) > 0:
+        sys.exit(1)
 
 
 def _cleanup_tmp():
@@ -114,7 +145,7 @@ if __name__ == "__main__":
         "--platform",
         choices=["youtube", "instagram", "facebook", "all"],
         default="all",
-        help="Which platform to post to",
+        help="Which platform to post to (default: all)",
     )
     args = parser.parse_args()
 

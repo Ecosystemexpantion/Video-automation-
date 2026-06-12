@@ -22,7 +22,7 @@ Automatically generates short-form videos about AI money-making, posts them to Y
 
 | Service | URL | What you do |
 |---|---|---|
-| Google Gemini | https://aistudio.google.com | Sign in → Get API Key (free) |
+| Anthropic (Claude Haiku) | https://console.anthropic.com | Sign up → API Keys → Create Key |
 | Pexels | https://www.pexels.com/api | Register → Get API Key (free) |
 | Supabase | https://supabase.com | Create project → Settings → API → copy URL + service_role key |
 | YouTube | https://console.cloud.google.com | Create project → Enable YouTube Data API v3 → Create OAuth credentials → follow auth flow to get refresh token |
@@ -43,7 +43,7 @@ Add each of these:
 | Secret Name | Value |
 |---|---|
 | `WHATSAPP_INVITE_LINK` | Your WhatsApp group invite link |
-| `GEMINI_API_KEY` | From Google AI Studio |
+| `ANTHROPIC_API_KEY` | From console.anthropic.com |
 | `PEXELS_API_KEY` | From Pexels |
 | `YOUTUBE_CLIENT_SECRETS_JSON` | JSON with `token`, `refresh_token`, `client_id`, `client_secret` |
 | `INSTAGRAM_ACCESS_TOKEN` | From Facebook Developers |

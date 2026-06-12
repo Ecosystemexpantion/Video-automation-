@@ -11,56 +11,60 @@ export default async function handler(req, res) {
   }
 
   const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekStart = new Date(now);
   weekStart.setDate(weekStart.getDate() - 7);
+  const prevWeekStart = new Date(now);
+  prevWeekStart.setDate(prevWeekStart.getDate() - 14);
 
-  const [todayPosts, weekPosts, recentPosts, latestLead] = await Promise.all([
-    supabase
-      .from("posts")
-      .select("*")
-      .gte("created_at", todayStart.toISOString()),
-    supabase
-      .from("posts")
-      .select("*")
-      .gte("created_at", weekStart.toISOString()),
-    supabase
-      .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("leads")
-      .select("*")
-      .order("recorded_at", { ascending: false })
-      .limit(1),
+  const [todayRes, weekRes, recentRes, allLeadsRes] = await Promise.all([
+    supabase.from("posts").select("*").gte("created_at", todayStart.toISOString()),
+    supabase.from("posts").select("*").gte("created_at", weekStart.toISOString()),
+    supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(20),
+    supabase.from("leads").select("*").order("recorded_at", { ascending: false }).limit(30),
   ]);
 
-  const todayData = todayPosts.data || [];
-  const weekData = weekPosts.data || [];
-  const recent = recentPosts.data || [];
+  const todayData = todayRes.data || [];
+  const weekData = weekRes.data || [];
+  const recent = recentRes.data || [];
+  const leads = allLeadsRes.data || [];
+
+  const successToday = todayData.filter((p) => p.status === "success");
+  const failuresToday = todayData.filter((p) => p.status === "failed").length;
+  const successWeek = weekData.filter((p) => p.status === "success");
+  const successRate = todayData.length > 0
+    ? Math.round((successToday.length / todayData.length) * 100)
+    : 100;
 
   const platformCounts = {};
-  weekData.filter((p) => p.status === "success").forEach((p) => {
+  successWeek.forEach((p) => {
     platformCounts[p.platform] = (platformCounts[p.platform] || 0) + 1;
   });
-  const bestPlatform = Object.entries(platformCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "none";
+  const bestPlatform = Object.entries(platformCounts)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || "none";
 
-  const failures24h = todayData.filter((p) => p.status === "failed").length;
+  const latestLead = leads[0];
+  const leadsTotal = latestLead?.whatsapp_member_count ?? 0;
 
-  const leadsToday = latestLead.data?.[0]?.whatsapp_member_count ?? 0;
-  const leadsTotal = latestLead.data?.[0]?.whatsapp_member_count ?? 0;
+  const todayLeadsEntry = leads.find((l) => new Date(l.recorded_at) >= todayStart);
+  const weekLeadsEntry = leads.find((l) => new Date(l.recorded_at) >= weekStart);
+  const leadsToday = todayLeadsEntry?.whatsapp_member_count
+    ? leadsTotal - (leads[leads.indexOf(todayLeadsEntry) + 1]?.whatsapp_member_count ?? leadsTotal)
+    : 0;
+  const leadsWeek = weekLeadsEntry?.whatsapp_member_count
+    ? leadsTotal - (leads[leads.indexOf(weekLeadsEntry) + 1]?.whatsapp_member_count ?? leadsTotal)
+    : 0;
 
+  res.setHeader("Cache-Control", "no-store");
   res.json({
-    postsToday: todayData.filter((p) => p.status === "success").length,
-    totalPosts: weekData.filter((p) => p.status === "success").length,
+    postsToday: successToday.length,
+    totalPosts: successWeek.length,
+    successRate,
     bestPlatform,
-    failures: failures24h,
-    leadsToday,
-    leadsWeek: leadsToday,
+    failures: failuresToday,
     leadsTotal,
+    leadsToday: Math.max(0, leadsToday),
+    leadsWeek: Math.max(0, leadsWeek),
     recentPosts: recent,
     allPosts: weekData,
   });

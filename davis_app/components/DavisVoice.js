@@ -1,63 +1,69 @@
 import { useEffect, useRef, useState } from "react";
 
 const WAKE_PHRASE = "hey davis";
+
 const COMMANDS = {
   "leads today": "leads_today",
   "leads this week": "leads_week",
   "total leads": "leads_total",
+  "how many leads": "leads_total",
   "how many posts": "posts_today",
   "how many videos": "posts_today",
+  "videos today": "posts_today",
   "best platform": "best_platform",
+  "which platform": "best_platform",
   "any failures": "failures",
   "group count": "leads_total",
   "how are we doing": "summary",
   "give me a report": "summary",
+  "full report": "summary",
+  "how is it going": "summary",
 };
 
-export default function DavisVoice({ onCommand, stats }) {
+export default function DavisVoice({ stats }) {
   const [status, setStatus] = useState("idle");
   const [transcript, setTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
+  const [supported, setSupported] = useState(true);
   const recognitionRef = useRef(null);
-  const listeningRef = useRef(false);
+  const awaitingCommandRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   const speak = (text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.05;
     utterance.volume = 1.0;
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(
-      (v) => v.lang === "en-US" && v.name.toLowerCase().includes("female")
-    ) || voices.find((v) => v.lang === "en-US");
+    const preferred =
+      voices.find((v) => v.lang === "en-US" && /female|aria|samantha|zira/i.test(v.name)) ||
+      voices.find((v) => v.lang === "en-US") ||
+      voices[0];
     if (preferred) utterance.voice = preferred;
     window.speechSynthesis.speak(utterance);
     setLastResponse(text);
   };
 
-  const handleCommand = (commandKey) => {
-    if (!stats) {
-      speak("I'm still loading your data. Please wait a moment.");
-      return;
-    }
+  const buildResponse = (commandKey) => {
+    if (!stats) return "I'm still loading your data. Give me a moment.";
+    const { postsToday = 0, totalPosts = 0, leadsTotal = 0, leadsToday = 0, leadsWeek = 0, failures = 0, bestPlatform = "YouTube" } = stats;
 
-    const responses = {
-      leads_today: `Today you have ${stats.leadsToday ?? 0} new WhatsApp group members. Keep it up!`,
-      leads_week: `This week you gained ${stats.leadsWeek ?? 0} new group members across all platforms.`,
-      leads_total: `Your WhatsApp group currently has ${stats.leadsTotal ?? 0} total members.`,
-      posts_today: `Today the system posted ${stats.postsToday ?? 0} videos across your platforms.`,
-      best_platform: `Your best performing platform is ${stats.bestPlatform ?? "YouTube"} with the most views this week.`,
-      failures: stats.failures > 0
-        ? `There ${stats.failures === 1 ? "was" : "were"} ${stats.failures} failed post${stats.failures === 1 ? "" : "s"} in the last 24 hours. Check the dashboard for details.`
-        : "No failures in the last 24 hours. Everything is running smoothly!",
-      summary: `Here's your summary: ${stats.postsToday ?? 0} videos posted today, ${stats.leadsToday ?? 0} new WhatsApp members, and ${stats.totalPosts ?? 0} total videos this week. Your top platform is ${stats.bestPlatform ?? "YouTube"}.`,
+    const map = {
+      leads_today: `Today you got ${leadsToday} new WhatsApp group members. Keep the momentum going!`,
+      leads_week: `This week you gained ${leadsWeek} new members across all platforms.`,
+      leads_total: `Your WhatsApp group currently has ${leadsTotal} members.`,
+      posts_today: `Today the system posted ${postsToday} videos across your platforms.`,
+      best_platform: `Your best performing platform this week is ${bestPlatform}.`,
+      failures:
+        failures > 0
+          ? `There ${failures === 1 ? "was" : "were"} ${failures} failed post${failures === 1 ? "" : "s"} in the last 24 hours. Check the dashboard.`
+          : "No failures in the last 24 hours. Everything is running smoothly.",
+      summary: `Here's your report: ${postsToday} videos posted today, ${totalPosts} total this week, ${leadsTotal} WhatsApp members, top platform is ${bestPlatform}${failures > 0 ? `, and ${failures} failure${failures === 1 ? "" : "s"} to check` : ", and no failures"}.`,
     };
 
-    const response = responses[commandKey] || "I didn't understand that command. Try asking about leads, posts, or which platform is working best.";
-    speak(response);
-    onCommand?.(commandKey, response);
+    return map[commandKey] || "I didn't understand that. Try asking about leads, posts, or which platform is doing best.";
   };
 
   const matchCommand = (text) => {
@@ -68,88 +74,168 @@ export default function DavisVoice({ onCommand, stats }) {
     return null;
   };
 
-  useEffect(() => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) return;
+  const activateListen = () => {
+    awaitingCommandRef.current = true;
+    setStatus("listening");
+    speak("Yes? What would you like to know?");
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      awaitingCommandRef.current = false;
+      setStatus("watching");
+    }, 7000);
+  };
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setSupported(false);
+      return;
+    }
+
+    const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = "en-US";
     recognitionRef.current = recognition;
 
     recognition.onresult = (event) => {
-      const last = event.results[event.results.length - 1];
-      const text = last[0].transcript.toLowerCase().trim();
+      const text = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
       setTranscript(text);
 
-      if (!listeningRef.current && text.includes(WAKE_PHRASE)) {
-        listeningRef.current = true;
-        setStatus("listening");
-        speak("Yes? What would you like to know?");
-        setTimeout(() => { listeningRef.current = false; setStatus("watching"); }, 6000);
+      if (!awaitingCommandRef.current) {
+        if (text.includes(WAKE_PHRASE)) activateListen();
         return;
       }
 
-      if (listeningRef.current) {
-        const cmd = matchCommand(text);
-        if (cmd) {
-          handleCommand(cmd);
-        } else {
-          speak("I didn't catch that. Try asking about leads, posts, or platform performance.");
-        }
-        listeningRef.current = false;
-        setStatus("watching");
+      clearTimeout(timeoutRef.current);
+      awaitingCommandRef.current = false;
+      setStatus("watching");
+
+      const cmd = matchCommand(text);
+      speak(buildResponse(cmd));
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error !== "no-speech") {
+        recognition.stop();
+        setTimeout(() => { try { recognition.start(); } catch (_) {} }, 1500);
       }
     };
 
-    recognition.onerror = () => {
-      recognition.stop();
-      setTimeout(() => recognition.start(), 1000);
-    };
-
     recognition.onend = () => {
-      if (status !== "idle") recognition.start();
+      setTimeout(() => { try { recognition.start(); } catch (_) {} }, 500);
     };
 
     recognition.start();
     setStatus("watching");
 
-    return () => recognition.stop();
+    return () => {
+      clearTimeout(timeoutRef.current);
+      recognition.stop();
+    };
   }, []);
 
-  const statusColors = { idle: "#666", watching: "#25D366", listening: "#FFD700" };
-  const statusLabels = {
+  if (!supported) {
+    return (
+      <div style={S.container}>
+        <span style={{ color: "#555", fontSize: "13px" }}>
+          Voice not supported in this browser. Use Chrome on desktop.
+        </span>
+      </div>
+    );
+  }
+
+  const dotColor = { idle: "#333", watching: "#25D366", listening: "#FFD700" }[status];
+  const label = {
     idle: "Offline",
-    watching: 'Watching — say "Hey Davis"',
-    listening: "Listening...",
-  };
+    watching: 'Say "Hey Davis" to activate',
+    listening: "Listening… ask me anything",
+  }[status];
 
   return (
-    <div style={styles.container}>
-      <div style={{ ...styles.dot, background: statusColors[status] }} />
-      <span style={styles.label}>{statusLabels[status]}</span>
+    <div style={S.container}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ ...S.dot, background: dotColor, boxShadow: status === "listening" ? `0 0 14px ${dotColor}` : "none" }} />
+        <span style={{ color: status === "listening" ? "#FFD700" : "#888", fontSize: "14px", fontWeight: status === "listening" ? 600 : 400 }}>
+          {label}
+        </span>
+      </div>
+
+      {status === "listening" && (
+        <div style={S.waves}>
+          {[0, 0.15, 0.3, 0.15, 0].map((delay, i) => (
+            <div key={i} style={{ ...S.wave, animationDelay: `${delay}s` }} />
+          ))}
+        </div>
+      )}
+
       {transcript && (
-        <p style={styles.transcript}>You: "{transcript}"</p>
+        <p style={S.transcript}>You: &ldquo;{transcript}&rdquo;</p>
       )}
       {lastResponse && (
-        <p style={styles.response}>Davis: "{lastResponse}"</p>
+        <p style={S.response}>Davis: &ldquo;{lastResponse}&rdquo;</p>
       )}
+
+      <style>{`
+        @keyframes wave {
+          0%, 100% { transform: scaleY(0.4); }
+          50% { transform: scaleY(1.4); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
 
-const styles = {
+const S = {
   container: {
-    display: "flex", flexDirection: "column", alignItems: "center",
-    gap: "8px", padding: "16px", background: "#1a1a1a",
-    borderRadius: "12px", minWidth: "300px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "10px",
+    padding: "20px 28px",
+    background: "#161616",
+    border: "1px solid #1e1e1e",
+    borderRadius: "16px",
+    minWidth: "340px",
+    maxWidth: "500px",
   },
   dot: {
-    width: "16px", height: "16px", borderRadius: "50%",
-    boxShadow: "0 0 12px currentColor", transition: "background 0.3s",
+    width: "12px",
+    height: "12px",
+    borderRadius: "50%",
+    transition: "background 0.3s, box-shadow 0.3s",
+    flexShrink: 0,
   },
-  label: { color: "#ccc", fontSize: "14px" },
-  transcript: { color: "#888", fontSize: "13px", fontStyle: "italic", margin: 0 },
-  response: { color: "#25D366", fontSize: "14px", margin: 0, textAlign: "center" },
+  waves: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    height: "24px",
+  },
+  wave: {
+    width: "4px",
+    height: "20px",
+    background: "#FFD700",
+    borderRadius: "2px",
+    animation: "wave 0.8s ease-in-out infinite",
+  },
+  transcript: {
+    color: "#666",
+    fontSize: "12px",
+    fontStyle: "italic",
+    margin: 0,
+    textAlign: "center",
+    maxWidth: "380px",
+  },
+  response: {
+    color: "#25D366",
+    fontSize: "13px",
+    margin: 0,
+    textAlign: "center",
+    maxWidth: "380px",
+    lineHeight: 1.5,
+  },
 };
