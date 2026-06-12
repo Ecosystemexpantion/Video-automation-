@@ -1,34 +1,43 @@
 TOPICS = [
-    "How to make $500/month using ChatGPT to write content for clients",
-    "The AI automation tool that freelancers are using to 10x their income",
-    "5 ways to use AI to start a business with zero capital",
-    "How to build a passive income chatbot using free AI tools",
-    "Make money reselling AI-generated content — step by step",
-    "Top 3 AI tools that replace a full-time employee in your business",
-    "How I automated my entire social media with free AI tools",
-    "Build an AI-powered email list that sells for you 24/7",
-    "Use ChatGPT to write and sell digital products online",
-    "The AI side hustle making people $1000/week in 2025",
-    "How to use AI to create and sell online courses fast",
-    "Make money as an AI automation consultant — no coding needed",
-    "Free AI tools that generate images for your business",
-    "How to use AI to run a faceless YouTube channel profitably",
-    "Automate your WhatsApp business replies with free AI",
-    "The AI business model that works even while you sleep",
-    "How to use Gemini AI to write proposals and win clients",
-    "Turn AI into your personal money-making assistant",
-    "3 AI automation businesses you can start this weekend",
-    "How to use AI to generate leads for any business for free",
-    "AI tools that will save you 10 hours every week",
-    "How to sell AI services without being a tech expert",
-    "Use AI to start a dropshipping business in 24 hours",
-    "The AI-powered affiliate marketing strategy that actually works",
-    "How businesses in Africa are using AI to make more money",
-    "Free AI tools vs paid — which ones actually make you money",
-    "How to use AI to write a high-converting sales page in 10 minutes",
-    "Start an AI automation agency with zero experience",
-    "Use AI to run your business while traveling",
-    "How to make money teaching others to use AI tools",
+    # Technical tutorials
+    "How to set up a Telegram bot in under 10 minutes — full walkthrough",
+    "Building your first digital product on Selar: step-by-step guide",
+    "How to deploy a Next.js site on GitHub Pages for free",
+    "Setting up Supabase for your first web project — beginner guide",
+    "How to connect a Telegram bot to Supabase: a practical tutorial",
+    "Building an automated WhatsApp reply system — how it actually works",
+    "How to use Claude AI to write sales copy — with real examples",
+    "GitHub Actions explained: how to automate tasks without a server",
+    "How to create and host a digital product funnel using free tools",
+    "Step-by-step: building a lead capture bot with no coding experience",
+
+    # EEM26 methodology / AAM / SRE systems
+    "The 4-Day Amara Onboarding Bot — how it works (full walkthrough)",
+    "What is the AAM system and how does it help digital creators?",
+    "How the SRE framework can help you structure your online business",
+    "Breaking down the EEM26 curriculum: what students actually learn",
+    "How automated onboarding can help you serve more students consistently",
+
+    # Student case studies (educational framing)
+    "How one student built their first digital funnel in 4 days — case study",
+    "What I learned watching 30 students go through their first product launch",
+    "Common mistakes new digital creators make (and how to avoid them)",
+    "How a student with no tech background set up their first Telegram bot",
+    "What worked and what didn't: lessons from running an online cohort",
+
+    # Mindset / business building
+    "Why learning to automate one task can free up hours in your week",
+    "The difference between building a system and just staying busy",
+    "How to think about digital products as a long-term skill investment",
+    "Why documentation is the most underrated skill in digital business",
+    "How to test an idea before building the full product — practical steps",
+
+    # Honest effort / process-focused
+    "I spent 6 months building this onboarding system — here is how it works",
+    "What building a real automation workflow actually looks like day-to-day",
+    "How to go from idea to first paying customer: a realistic timeline",
+    "The tools I use to run a digital education business — honest review",
+    "Why most automation projects fail in month two (and how to avoid it)",
 ]
 
 PEXELS_KEYWORDS_MAP = {
