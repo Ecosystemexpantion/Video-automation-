@@ -6,13 +6,16 @@ GRAPH_API = "https://graph.facebook.com/v21.0"
 
 
 def post_video(video_path: str, title: str, description: str, hashtags: list[str]) -> str:
+    if not FB_ACCESS_TOKEN or not FB_PAGE_ID:
+        raise RuntimeError("Facebook credentials not configured — skipping")
+
     tag_str = " ".join(f"#{h}" for h in hashtags)
     full_description = (
         f"{title}\n\n"
         f"{description}\n\n"
-        f"🔥 Join our FREE WhatsApp community for daily AI tips & money-making strategies:\n"
+        f"Join our free WhatsApp community for daily AI tutorials and resources:\n"
         f"{WHATSAPP_INVITE_LINK}\n\n"
-        f"{tag_str} #AIAutomation #MakeMoneyOnline"
+        f"{tag_str} #AIAutomation #DigitalBusiness #LearnAI"
     )
 
     upload_url = f"{GRAPH_API}/{FB_PAGE_ID}/videos"

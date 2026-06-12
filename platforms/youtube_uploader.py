@@ -35,12 +35,15 @@ def upload_short(
     hashtags: list[str],
     topic: str = "",
 ) -> str:
+    if not YOUTUBE_CLIENT_SECRETS_JSON:
+        raise RuntimeError("YouTube credentials not configured — skipping")
+
     youtube = _get_youtube_service()
 
-    tags = hashtags + ["AIAutomation", "Shorts", "MakeMoneyWithAI"]
+    tags = hashtags + ["AIAutomation", "Shorts", "LearnAI", "DigitalBusiness"]
     full_description = (
         f"{description}\n\n"
-        f"🔥 Join our FREE WhatsApp community for daily AI money tips:\n"
+        f"Join our free WhatsApp community for daily AI tutorials and resources:\n"
         f"{WHATSAPP_INVITE_LINK}\n\n"
         f"#{' #'.join(tags)}"
     )

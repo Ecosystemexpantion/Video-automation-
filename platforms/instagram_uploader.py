@@ -6,12 +6,15 @@ GRAPH_API = "https://graph.facebook.com/v21.0"
 
 
 def upload_reel(video_path: str, caption: str, hashtags: list[str]) -> str:
+    if not INSTAGRAM_ACCESS_TOKEN or not INSTAGRAM_BUSINESS_ACCOUNT_ID:
+        raise RuntimeError("Instagram credentials not configured — skipping")
+
     tag_str = " ".join(f"#{h}" for h in hashtags)
     full_caption = (
         f"{caption}\n\n"
-        f"🔥 Join our FREE WhatsApp community for daily AI money tips:\n"
+        f"Join our free WhatsApp community for daily AI tutorials:\n"
         f"{WHATSAPP_INVITE_LINK}\n\n"
-        f"{tag_str} #AIAutomation #MakeMoneyOnline #SideHustle"
+        f"{tag_str} #AIAutomation #DigitalBusiness #LearnAI"
     )
 
     with open(video_path, "rb") as f:
