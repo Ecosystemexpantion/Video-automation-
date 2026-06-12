@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Davis — AI Lead Engine</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0d0d; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      padding: 24px 20px; max-width: 1100px; margin: 0 auto;
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 1px solid #1e1e1e; padding-bottom: 20px; margin-bottom: 28px;
+    }
+    h1 { font-size: 40px; font-weight: 900; color: #25D366; letter-spacing: -1px; }
+    .subtitle { color: #666; font-size: 13px; margin-top: 4px; }
+    .updated { color: #555; font-size: 12px; text-align: right; }
+    #voice-box {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 20px 28px; background: #161616; border: 1px solid #1e1e1e;
+      border-radius: 16px; max-width: 500px; margin: 0 auto 28px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: background 0.3s, box-shadow 0.3s; }
+    .dot.watching { background: #25D366; }
+    .dot.listening { background: #FFD700; box-shadow: 0 0 14px #FFD700; }
+    .voice-label { color: #888; font-size: 14px; }
+    .voice-label.listening { color: #FFD700; font-weight: 600; }
+    .waves { display: flex; align-items: center; gap: 4px; height: 24px; }
+    .wave { width: 4px; height: 20px; background: #FFD700; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
+    .wave:nth-child(2) { animation-delay: 0.15s; }
+    .wave:nth-child(3) { animation-delay: 0.3s; }
+    .wave:nth-child(4) { animation-delay: 0.15s; }
+    #transcript { color: #666; font-size: 12px; font-style: italic; text-align: center; }
+    #response { color: #25D366; font-size: 13px; text-align: center; line-height: 1.5; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .card { background: #161616; border: 1px solid #1e1e1e; border-radius: 14px; padding: 20px; text-align: center; }
+    .card-value { font-size: 44px; font-weight: 900; line-height: 1; }
+    .card-label { color: #888; font-size: 13px; margin-top: 6px; }
+    .card-sub { color: #444; font-size: 11px; margin-top: 4px; }
+    .panel { background: #161616; border: 1px solid #1e1e1e; border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .panel-title { font-size: 15px; font-weight: 600; color: #aaa; margin-bottom: 16px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; margin-bottom: 20px; }
+    .platform-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .bar-track { flex: 1; background: #222; border-radius: 4px; height: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .bar-count { color: #888; font-size: 13px; min-width: 24px; text-align: right; }
+    .table { border-radius: 10px; overflow: hidden; border: 1px solid #1e1e1e; }
+    .table-header { display: grid; grid-template-columns: 1fr 2.5fr 1fr 1.5fr; padding: 10px 16px; background: #111; color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .table-row { display: grid; grid-template-columns: 1fr 2.5fr 1fr 1.5fr; padding: 12px 16px; border-top: 1px solid #1a1a1a; font-size: 13px; }
+    .topic-cell { color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .time-cell { color: #555; font-size: 11px; }
+    .empty { padding: 24px; color: #555; text-align: center; font-size: 14px; }
+    footer { margin-top: 40px; color: #333; font-size: 12px; text-align: center; padding-top: 20px; border-top: 1px solid #1a1a1a; }
+    @keyframes wave { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1.4); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 32px; height: 32px; border: 3px solid #222; border-top-color: #25D366; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 40px auto; }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+      .table-header, .table-row { grid-template-columns: 1fr 2fr 1fr; }
+      .table-header span:last-child, .table-row span:last-child { display: none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div><h1>Davis</h1><p class="subtitle">AI Automation Lead Engine</p></div>
+  <div class="updated" id="update-time"></div>
+</header>
+<div id="voice-box">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="dot" id="dot"></div>
+    <span class="voice-label" id="voice-label">Loading…</span>
+  </div>
+  <div class="waves" id="waves" style="display:none">
+    <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
+  </div>
+  <p id="transcript"></p>
+  <p id="response"></p>
+</div>
+<div id="loading"><div class="spinner"></div></div>
+<div id="dashboard" style="display:none">
+  <div class="stats-grid">
+    <div class="card"><div class="card-value" id="s-today" style="color:#25D366">—</div><div class="card-label">Videos Today</div><div class="card-sub" id="s-rate"></div></div>
+    <div class="card"><div class="card-value" id="s-week" style="color:#4FC3F7">—</div><div class="card-label">Videos This Week</div><div class="card-sub">across all platforms</div></div>
+    <div class="card"><div class="card-value" id="s-leads" style="color:#FFD700">—</div><div class="card-label">WhatsApp Members</div><div class="card-sub">latest snapshot</div></div>
+    <div class="card"><div class="card-value" id="s-fail" style="color:#25D366">—</div><div class="card-label">Failures (24h)</div><div class="card-sub" id="s-fail-sub"></div></div>
+  </div>
+  <div class="two-col">
+    <div class="panel"><div class="panel-title">Platform Breakdown (7 days)</div><div id="platforms"></div></div>
+    <div class="panel"><div class="panel-title">Recent Posts</div><div class="table"><div class="table-header"><span>Platform</span><span>Topic</span><span>Status</span><span>Time</span></div><div id="post-rows"></div></div></div>
+  </div>
+</div>
+<footer>Davis AI Lead Engine · Running on GitHub Actions · Free Forever</footer>
+<script>
+  const SUPABASE_URL = 'https://leqizarzgfpiriknpnxw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlcWl6YXJ6Z2ZwaXJpa25wbnh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNzgxNTcsImV4cCI6MjA5NTc1NDE1N30.LNSMP3LXJv_QKE9COMmm9OS5axVGqw_60m750c6bBeg';
+  const PLATFORM_COLORS = { youtube: '#FF0000', instagram: '#E1306C', facebook: '#1877F2' };
+  const PLATFORM_ICONS  = { youtube: '▶', instagram: '◉', facebook: 'f' };
+  async function query(table, params='') {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+    return r.json();
+  }
+  let stats = null;
+  async function loadStats() {
+    const now = new Date();
+    const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const weekISO  = new Date(now - 7*864e5).toISOString();
+    const [todayPosts, weekPosts, recentPosts, leads] = await Promise.all([
+      query('posts', `?created_at=gte.${todayISO}&select=*`),
+      query('posts', `?created_at=gte.${weekISO}&select=*`),
+      query('posts', `?order=created_at.desc&limit=20&select=*`),
+      query('leads', `?order=recorded_at.desc&limit=30&select=*`),
+    ]);
+    const successToday = todayPosts.filter(p=>p.status==='success');
+    const successWeek  = weekPosts.filter(p=>p.status==='success');
+    const failures     = todayPosts.filter(p=>p.status==='failed').length;
+    const successRate  = todayPosts.length ? Math.round(successToday.length/todayPosts.length*100) : 100;
+    const platformCounts = {};
+    successWeek.forEach(p=>platformCounts[p.platform]=(platformCounts[p.platform]||0)+1);
+    const bestPlatform = Object.entries(platformCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'none';
+    const leadsTotal = leads[0]?.whatsapp_member_count ?? 0;
+    stats = { postsToday: successToday.length, totalPosts: successWeek.length, successRate, failures, bestPlatform, leadsTotal, weekPosts, recentPosts };
+    render(stats);
+    document.getElementById('update-time').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }
+  function render(s) {
+    document.getElementById('loading').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('s-today').textContent=s.postsToday;
+    document.getElementById('s-rate').textContent=s.successRate+'% success rate';
+    document.getElementById('s-week').textContent=s.totalPosts;
+    document.getElementById('s-leads').textContent=s.leadsTotal||'—';
+    document.getElementById('s-fail').textContent=s.failures;
+    document.getElementById('s-fail').style.color=s.failures>0?'#FF5252':'#25D366';
+    document.getElementById('s-fail-sub').textContent=s.failures>0?'check logs below':'all clear';
+    document.getElementById('platforms').innerHTML=['youtube','instagram','facebook'].map(p=>{
+      const count=(s.weekPosts||[]).filter(x=>x.platform===p&&x.status==='success').length;
+      const pct=Math.min(100,(count/Math.max(1,s.totalPosts))*100);
+      return `<div class="platform-row"><span style="color:${PLATFORM_COLORS[p]};font-weight:700;font-size:14px;min-width:90px">${PLATFORM_ICONS[p]} ${p.charAt(0).toUpperCase()+p.slice(1)}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${PLATFORM_COLORS[p]}"></div></div><span class="bar-count">${count}</span></div>`;
+    }).join('');
+    const rows=document.getElementById('post-rows');
+    if(!s.recentPosts?.length){rows.innerHTML='<div class="empty">No posts yet — run the pipeline to get started.</div>';}
+    else{rows.innerHTML=s.recentPosts.map(p=>`<div class="table-row"><span style="color:${PLATFORM_COLORS[p.platform]||'#fff'};font-weight:600">${PLATFORM_ICONS[p.platform]||'•'} ${p.platform}</span><span class="topic-cell" title="${p.topic||''}">${(p.topic||'').slice(0,45)}${(p.topic||'').length>45?'…':''}</span><span style="color:${p.status==='success'?'#25D366':'#FF5252'};font-size:12px">${p.status==='success'?'✓ posted':'✗ failed'}</span><span class="time-cell">${new Date(p.created_at).toLocaleString()}</span></div>`).join('');}
+  }
+  const WAKE='hey davis';
+  const COMMANDS={'leads today':'leads_today','leads this week':'leads_week','total leads':'leads_total','how many leads':'leads_total','how many posts':'posts_today','how many videos':'posts_today','videos today':'posts_today','best platform':'best_platform','which platform':'best_platform','any failures':'failures','group count':'leads_total','how are we doing':'summary','give me a report':'summary','full report':'summary','how is it going':'summary'};
+  function buildResponse(key){
+    if(!stats)return"I'm still loading your data. Give me a moment.";
+    const{postsToday=0,totalPosts=0,leadsTotal=0,failures=0,bestPlatform='none'}=stats;
+    const map={leads_total:`Your WhatsApp group has ${leadsTotal} members.`,posts_today:`Today the system posted ${postsToday} videos.`,best_platform:`Your best platform this week is ${bestPlatform}.`,failures:failures>0?`There were ${failures} failures in the last 24 hours. Check the dashboard.`:'No failures in the last 24 hours. All clear.',summary:`Here's your report: ${postsToday} videos today, ${totalPosts} this week, ${leadsTotal} WhatsApp members, top platform is ${bestPlatform}${failures>0?`, and ${failures} failure${failures===1?'':'s'} to check`:', no failures'}.`};
+    return map[key]||"I didn't catch that. Try: leads, videos today, best platform, or full report.";
+  }
+  function speak(text){
+    if(!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.92;u.pitch=1.05;u.volume=1.0;
+    const voices=window.speechSynthesis.getVoices();
+    const v=voices.find(v=>v.lang==='en-US'&&/female|aria|samantha|zira/i.test(v.name))||voices.find(v=>v.lang==='en-US')||voices[0];
+    if(v)u.voice=v;
+    window.speechSynthesis.speak(u);
+    document.getElementById('response').textContent='Davis: "'+text+'"';
+  }
+  function setStatus(status){
+    const dot=document.getElementById('dot'),label=document.getElementById('voice-label'),waves=document.getElementById('waves');
+    dot.className='dot '+status;
+    label.className='voice-label'+(status==='listening'?' listening':'');
+    label.textContent=status==='watching'?'Say "Hey Davis" to activate':status==='listening'?'Listening… ask me anything':'Offline';
+    waves.style.display=status==='listening'?'flex':'none';
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('voice-label').textContent='Voice not supported — use Chrome';}
+  else{
+    let awaiting=false,timer;
+    const rec=new SR();
+    rec.continuous=true;rec.interimResults=false;rec.lang='en-US';
+    rec.onresult=e=>{
+      const text=e.results[e.results.length-1][0].transcript.toLowerCase().trim();
+      document.getElementById('transcript').textContent='You: "'+text+'"';
+      if(!awaiting){if(text.includes(WAKE)){awaiting=true;setStatus('listening');speak('Yes? What would you like to know?');timer=setTimeout(()=>{awaiting=false;setStatus('watching');},7000);}return;}
+      clearTimeout(timer);awaiting=false;setStatus('watching');
+      const cmd=Object.entries(COMMANDS).find(([phrase])=>text.includes(phrase))?.[1];
+      speak(buildResponse(cmd));
+    };
+    rec.onerror=e=>{if(e.error!=='no-speech'){rec.stop();setTimeout(()=>{try{rec.start()}catch(_){}},1500);}};
+    rec.onend=()=>setTimeout(()=>{try{rec.start()}catch(_){}},500);
+    rec.start();setStatus('watching');
+  }
+  loadStats();
+  setInterval(loadStats,60000);
+</script>
+</body>
+</html>
