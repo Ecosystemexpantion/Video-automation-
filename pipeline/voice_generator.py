@@ -4,8 +4,7 @@ from config import ELEVENLABS_API_KEY
 
 OUTPUT_DIR = "tmp"
 
-# "Rachel" — available on free tier, clear and natural female voice
-VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
+VOICE_ID = "asDeXBMC8hUkhqqL7agO"
 MODEL_ID = "eleven_turbo_v2_5"
 
 VOICE_SETTINGS = {
