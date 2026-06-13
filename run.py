@@ -16,14 +16,17 @@ from platforms.facebook_poster import post_video
 from templates.video_topics import TOPICS, get_pexels_keywords
 
 
-def _upload_with_retry(fn, *args, retries=3, **kwargs):
-    for attempt in range(retries):
+def _upload_with_retry(fn, *args, retries=2, **kwargs):
+    for attempt in range(retries + 1):
         try:
             return fn(*args, **kwargs)
+        except RuntimeError as e:
+            # Credential/config errors — no point retrying
+            raise
         except Exception as e:
-            if attempt < retries - 1:
+            if attempt < retries:
                 wait = 2 ** attempt
-                print(f"    Retry {attempt + 1}/{retries - 1} in {wait}s: {e}")
+                print(f"    Retry {attempt + 1}/{retries} in {wait}s: {e}")
                 time.sleep(wait)
             else:
                 raise
@@ -53,12 +56,12 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
         print("\n[DRY RUN] Pipeline test complete — no real actions taken.\n")
         return
 
-    print("\n[2/6] Generating script with Claude Haiku...")
+    print("\n[2/6] Generating script with Claude...")
     script = generate_script(topic)
     mark_topic_used(topic_id)
     print(f"      Title: {script['title']}")
 
-    print("\n[3/6] Generating voiceover with Edge TTS...")
+    print("\n[3/6] Generating voiceover...")
     audio_path = generate_voiceover(script["full_script"])
     print(f"      Saved: {audio_path}")
 
@@ -78,6 +81,7 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
 
     print("\n[6/6] Uploading to platforms...")
     results = {}
+    real_errors = []
 
     for platform in platforms:
         try:
@@ -112,11 +116,23 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
             results[platform] = "success"
             print(f"      [{platform.upper()}] OK — {url}")
 
+        except RuntimeError as e:
+            msg = str(e)
+            if "not configured" in msg or "skipping" in msg:
+                print(f"      [{platform.upper()}] SKIPPED — {msg}")
+                results[platform] = "skipped"
+            else:
+                log_post(platform, topic, script.get("title", topic), status="failed", error=msg)
+                results[platform] = f"failed: {msg}"
+                real_errors.append(f"{platform}: {msg}")
+                print(f"      [{platform.upper()}] FAILED — {msg}")
+
         except Exception as e:
-            log_post(platform, topic, script.get("title", topic), status="failed", error=str(e))
-            results[platform] = f"failed: {e}"
-            print(f"      [{platform.upper()}] FAILED — {e}")
-            traceback.print_exc()
+            msg = str(e)
+            log_post(platform, topic, script.get("title", topic), status="failed", error=msg)
+            results[platform] = f"failed: {msg}"
+            real_errors.append(f"{platform}: {msg}")
+            print(f"      [{platform.upper()}] FAILED — {msg}")
 
     _cleanup_tmp()
 
@@ -125,7 +141,8 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
     print(f"  Pipeline complete — {successes}/{len(platforms)} platforms posted")
     print(f"{'=' * 45}\n")
 
-    if successes == 0 and len(platforms) > 0:
+    # Only fail the build if there were real (non-credential) errors
+    if real_errors:
         sys.exit(1)
 
 
