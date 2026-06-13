@@ -2,8 +2,11 @@ name: Davis Video Pipeline
 
 on:
   schedule:
-    # Runs at 5am, 11am, 5pm, 11pm UTC (6am, 12pm, 6pm, midnight WAT)
     - cron: "0 5,11,17,23 * * *"
+  push:
+    branches:
+      - main
+      - claude/whatsapp-lead-generation-WR08K
   workflow_dispatch:
     inputs:
       platform:
