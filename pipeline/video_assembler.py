@@ -12,8 +12,9 @@ from config import VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS, WHATSAPP_INVITE_LINK
 
 OUTPUT_DIR = "tmp"
 
-TITLE_FONT_SIZE = 52
-CAPTION_FONT_SIZE = 48
+TITLE_FONT_SIZE = 56
+CAPTION_FONT_SIZE = 62
+CAPTION_YELLOW = (255, 222, 33)
 CTA_FONT_SIZE = 32
 BRAND_FONT_SIZE = 26
 CTA_GREEN = (37, 211, 102)
@@ -54,11 +55,14 @@ def _text_to_clip(text: str, fontsize: int, duration: float,
         draw.rectangle([0, 0, img_w - 1, img_h - 1], fill=bg_color)
 
     for i, line in enumerate(lines):
+        # Center each line horizontally within the image
+        line_w = draw.textlength(line, font=font)
+        x = (img_w - line_w) // 2
         y = padding + i * line_h
-        # Shadow
-        draw.text((padding + 2, y + 2), line, font=font, fill=(0, 0, 0, 180))
-        # Text
-        draw.text((padding, y), line, font=font, fill=(*color, 255))
+        # Thick outline for readability over any footage
+        for dx, dy in [(-3, -3), (3, -3), (-3, 3), (3, 3), (0, -3), (0, 3), (-3, 0), (3, 0)]:
+            draw.text((x + dx, y + dy), line, font=font, fill=(0, 0, 0, 255))
+        draw.text((x, y), line, font=font, fill=(*color, 255))
 
     arr = np.array(img.convert("RGBA"))
     clip = ImageClip(arr, ismask=False)
@@ -79,18 +83,22 @@ def _text_to_clip(text: str, fontsize: int, duration: float,
 
 
 def _make_gradient_overlay(width: int, height: int, duration: float) -> ImageClip:
-    arr = np.zeros((height, width, 4), dtype=np.uint8)
+    # Semi-transparent dark gradient (darker at top/bottom) so text pops
+    # while the footage stays clearly visible in the middle.
+    alpha = np.zeros((height, width), dtype=np.float64)
     for y in range(height):
         t = y / height
-        if t < 0.3:
-            alpha = int(80 * (t / 0.3))
-        elif t < 0.6:
-            alpha = 80
+        if t < 0.25:
+            a = 0.45 * (1 - t / 0.25)
+        elif t > 0.7:
+            a = 0.55 * ((t - 0.7) / 0.3)
         else:
-            alpha = int(80 + 120 * ((t - 0.6) / 0.4))
-        arr[y, :, 3] = min(alpha, 200)
-    img = PILImage.fromarray(arr, "RGBA").convert("RGB")
-    return ImageClip(np.array(img)).set_duration(duration)
+            a = 0.0
+        alpha[y, :] = a
+    black = np.zeros((height, width, 3), dtype=np.uint8)
+    clip = ImageClip(black).set_duration(duration)
+    mask = ImageClip(alpha, ismask=True).set_duration(duration)
+    return clip.set_mask(mask)
 
 
 def _make_cta_clips(duration: float) -> list:
@@ -117,8 +125,35 @@ def _make_cta_clips(duration: float) -> list:
     return [bg, label]
 
 
+def _fit_to_frame(clip):
+    """Resize + crop a clip to fill the 1080x1920 vertical frame."""
+    raw_ratio = clip.w / clip.h
+    target_ratio = VIDEO_WIDTH / VIDEO_HEIGHT
+    if raw_ratio > target_ratio:
+        clip = clip.resize(height=VIDEO_HEIGHT)
+        clip = crop(clip, width=VIDEO_WIDTH, x_center=clip.w / 2)
+    else:
+        clip = clip.resize(width=VIDEO_WIDTH)
+        clip = crop(clip, height=VIDEO_HEIGHT, y_center=clip.h / 2)
+    return clip
+
+
+def _build_background(footage_paths: list[str], duration: float):
+    """Cut between multiple footage clips so the visuals keep changing."""
+    n = len(footage_paths)
+    seg_dur = duration / n
+    segments = []
+    for path in footage_paths:
+        raw = VideoFileClip(path)
+        if raw.duration < seg_dur:
+            loops = int(seg_dur / raw.duration) + 1
+            raw = concatenate_videoclips([raw] * loops)
+        segments.append(_fit_to_frame(raw.subclip(0, seg_dur)))
+    return concatenate_videoclips(segments).subclip(0, duration)
+
+
 def assemble_video(
-    footage_path: str,
+    footage_path,
     audio_path: str,
     title: str,
     full_script: str,
@@ -131,20 +166,8 @@ def assemble_video(
     audio = AudioFileClip(audio_path)
     duration = audio.duration
 
-    raw_video = VideoFileClip(footage_path)
-    if raw_video.duration < duration:
-        loops = int(duration / raw_video.duration) + 1
-        raw_video = concatenate_videoclips([raw_video] * loops)
-    raw_video = raw_video.subclip(0, duration)
-
-    raw_ratio = raw_video.w / raw_video.h
-    target_ratio = VIDEO_WIDTH / VIDEO_HEIGHT
-    if raw_ratio > target_ratio:
-        raw_video = raw_video.resize(height=VIDEO_HEIGHT)
-        raw_video = crop(raw_video, width=VIDEO_WIDTH, x_center=raw_video.w / 2)
-    else:
-        raw_video = raw_video.resize(width=VIDEO_WIDTH)
-        raw_video = crop(raw_video, height=VIDEO_HEIGHT, y_center=raw_video.h / 2)
+    footage_paths = footage_path if isinstance(footage_path, list) else [footage_path]
+    raw_video = _build_background(footage_paths, duration)
 
     gradient = _make_gradient_overlay(VIDEO_WIDTH, VIDEO_HEIGHT, duration)
 
@@ -154,13 +177,19 @@ def assemble_video(
         position=("center", 100)
     )
 
-    captions = split_into_captions(full_script, words_per_caption=6)
+    captions = split_into_captions(full_script, words_per_caption=4)
     timed_captions = estimate_timings(captions, duration)
-    caption_clips = [
-        _text_to_clip(text, CAPTION_FONT_SIZE, duration=end - start, position=("center", "center"))
-        .set_start(start)
-        for start, end, text in timed_captions
-    ]
+    caption_clips = []
+    for i, (start, end, text) in enumerate(timed_captions):
+        # Alternate white / yellow like popular Shorts caption styles
+        color = CAPTION_YELLOW if i % 2 else (255, 255, 255)
+        clip = _text_to_clip(
+            text.upper(), CAPTION_FONT_SIZE,
+            duration=end - start,
+            position=("center", int(VIDEO_HEIGHT * 0.62)),
+            color=color,
+        ).set_start(start)
+        caption_clips.append(clip)
 
     cta_start = max(0, duration - 8)
     cta_duration = duration - cta_start

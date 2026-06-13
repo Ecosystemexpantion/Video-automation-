@@ -66,9 +66,18 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
     print(f"      Saved: {audio_path}")
 
     keywords = get_pexels_keywords(topic)
-    print(f"\n[4/6] Fetching background footage ({keywords[0]})...")
-    footage_path = fetch_background_footage(keywords[0])
-    print(f"      Saved: {footage_path}")
+    print(f"\n[4/6] Fetching background footage ({', '.join(keywords)})...")
+    footage_paths = []
+    for kw in keywords:
+        try:
+            path = fetch_background_footage(kw)
+            footage_paths.append(path)
+            print(f"      Saved: {path}")
+        except Exception as e:
+            print(f"      [WARN] No footage for '{kw}': {e}")
+    if not footage_paths:
+        raise RuntimeError("Could not fetch any background footage")
+    footage_path = footage_paths
 
     print("\n[5/6] Assembling video...")
     video_path = assemble_video(
