@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - claude/whatsapp-lead-generation-WR08K
   workflow_dispatch:
     inputs:
       platform:
@@ -36,7 +35,10 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          sudo apt-get install -y ffmpeg fonts-dejavu-core imagemagick
+          # Allow ImageMagick to read/write files needed by moviepy
+          sudo sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml || true
+          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*"\/>//' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
