@@ -68,6 +68,15 @@ jobs:
             python run.py --platform "$PLATFORM"
           fi
 
+      - name: Upload generated video as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-video-${{ github.run_number }}
+          path: tmp/*.mp4
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Cache footage for next run
         uses: actions/cache@v4
         with:
