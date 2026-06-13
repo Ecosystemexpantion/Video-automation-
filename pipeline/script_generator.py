@@ -27,8 +27,34 @@ Return ONLY a JSON object with exactly these keys:
   "description": "Platform description for YouTube/Instagram (max 150 chars, includes WhatsApp link)",
   "hashtags": ["AI", "MakeMoneyOnline", "AIAutomation", "SideHustle", "Entrepreneur"],
   "full_script": "Complete flowing script from hook through body to CTA, as it would be spoken",
-  "pexels_search": "2-3 word search term for background footage (e.g. 'artificial intelligence laptop')"
-}}"""
+  "pexels_search": "2-3 word search term for background footage (e.g. 'artificial intelligence laptop')",
+  "demo_steps": [
+    {{
+      "action": "goto",
+      "url": "https://example.com",
+      "narration": "exact words spoken at this moment"
+    }},
+    {{
+      "action": "click",
+      "description": "what to click (e.g. Sign Up button, search bar)",
+      "narration": "exact words spoken at this moment"
+    }},
+    {{
+      "action": "type",
+      "text": "text to type",
+      "narration": "exact words spoken at this moment"
+    }},
+    {{
+      "action": "scroll",
+      "direction": "down",
+      "narration": "exact words spoken at this moment"
+    }}
+  ]
+}}
+
+For demo_steps: create 4-8 steps that show the actual process on real websites relevant to the topic.
+For abstract topics (not tied to one website), use ChatGPT (chat.openai.com) or Google as the demo site to show the AI tool being used.
+The demo must visually match what is being narrated — each step's narration = what the voiceover says during that moment."""
 
 
 def generate_script(topic: str) -> dict:

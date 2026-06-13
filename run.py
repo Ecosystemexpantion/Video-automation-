@@ -9,6 +9,7 @@ from database.supabase_client import get_next_topic, mark_topic_used, log_post, 
 from pipeline.script_generator import generate_script
 from pipeline.voice_generator import generate_voiceover
 from pipeline.footage_fetcher import fetch_background_footage
+from pipeline.screen_recorder import record_demo
 from pipeline.video_assembler import assemble_video
 from platforms.youtube_uploader import upload_short
 from platforms.instagram_uploader import upload_reel
@@ -65,19 +66,32 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
     audio_path = generate_voiceover(script["full_script"])
     print(f"      Saved: {audio_path}")
 
-    keywords = get_pexels_keywords(topic)
-    print(f"\n[4/6] Fetching background footage ({', '.join(keywords)})...")
-    footage_paths = []
-    for kw in keywords:
+    # Step 4: Try screen recording first, fall back to Pexels footage
+    demo_steps = script.get("demo_steps", [])
+    footage_path = None
+
+    if demo_steps:
+        print(f"\n[4/6] Recording browser demo ({len(demo_steps)} steps)...")
         try:
-            path = fetch_background_footage(kw)
-            footage_paths.append(path)
-            print(f"      Saved: {path}")
+            footage_path = record_demo(demo_steps, total_duration=45.0)
+            print(f"      Screen recording saved: {footage_path}")
         except Exception as e:
-            print(f"      [WARN] No footage for '{kw}': {e}")
-    if not footage_paths:
-        raise RuntimeError("Could not fetch any background footage")
-    footage_path = footage_paths
+            print(f"      [WARN] Screen recording failed: {e} — falling back to Pexels")
+
+    if not footage_path:
+        keywords = get_pexels_keywords(topic)
+        print(f"\n[4/6] Fetching background footage ({', '.join(keywords)})...")
+        footage_paths = []
+        for kw in keywords:
+            try:
+                path = fetch_background_footage(kw)
+                footage_paths.append(path)
+                print(f"      Saved: {path}")
+            except Exception as e:
+                print(f"      [WARN] No footage for '{kw}': {e}")
+        if not footage_paths:
+            raise RuntimeError("Could not fetch any background footage")
+        footage_path = footage_paths
 
     print("\n[5/6] Assembling video...")
     video_path = assemble_video(

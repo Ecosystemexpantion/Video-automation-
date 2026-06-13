@@ -43,6 +43,9 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
       - name: Create tmp directory
         run: mkdir -p tmp footage_cache
 
@@ -58,6 +61,7 @@ jobs:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
           PLATFORM="${{ github.event.inputs.platform || 'all' }}"
           DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
