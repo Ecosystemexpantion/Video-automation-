@@ -1,49 +1,36 @@
 import os
-import requests
-from config import ELEVENLABS_API_KEY
+import numpy as np
 
 OUTPUT_DIR = "tmp"
-
-VOICE_ID = "asDeXBMC8hUkhqqL7agO"
-MODEL_ID = "eleven_turbo_v2_5"
-
-VOICE_SETTINGS = {
-    "stability": 0.45,
-    "similarity_boost": 0.82,
-    "style": 0.35,
-    "use_speaker_boost": True,
-}
 
 
 def generate_voiceover(script_text: str, output_filename: str = "voiceover.mp3") -> str:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     output_path = os.path.join(OUTPUT_DIR, output_filename)
 
-    if not ELEVENLABS_API_KEY:
-        from gtts import gTTS
-        tts = gTTS(text=script_text, lang="en", slow=False)
-        tts.save(output_path)
-        return output_path
-
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
-    headers = {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "text": script_text,
-        "model_id": MODEL_ID,
-        "voice_settings": VOICE_SETTINGS,
-    }
-
-    resp = requests.post(url, headers=headers, json=payload, timeout=60)
-    if resp.status_code != 200:
-        raise RuntimeError(f"ElevenLabs error {resp.status_code}: {resp.text[:200]}")
-
-    with open(output_path, "wb") as f:
-        f.write(resp.content)
+    try:
+        _kokoro(script_text, output_path)
+    except Exception as e:
+        print(f"  [Voice] Kokoro failed ({e}), falling back to gTTS")
+        _gtts(script_text, output_path)
 
     return output_path
+
+
+def _kokoro(text: str, output_path: str):
+    from kokoro_onnx import Kokoro
+    import soundfile as sf
+
+    # af_heart = warm American female, very natural
+    kokoro = Kokoro("kokoro-v0_19.onnx", "voices.bin")
+    samples, sample_rate = kokoro.create(text, voice="af_heart", speed=1.05, lang="en-us")
+    sf.write(output_path, samples, sample_rate)
+
+
+def _gtts(text: str, output_path: str):
+    from gtts import gTTS
+    tts = gTTS(text=text, lang="en", slow=False)
+    tts.save(output_path)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 anthropic==0.43.0
 gtts==2.5.3
-elevenlabs==1.13.4
+kokoro-onnx==0.4.9
+soundfile==0.13.1
 moviepy==1.0.3
 Pillow==9.5.0
 pexels-api==1.0.1
