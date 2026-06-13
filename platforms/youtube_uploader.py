@@ -11,14 +11,18 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
 
 def _get_youtube_service():
+    if not YOUTUBE_CLIENT_SECRETS_JSON:
+        raise RuntimeError("YouTube not configured — skipping")
     secrets = json.loads(YOUTUBE_CLIENT_SECRETS_JSON)
+    # Support both flat {"client_id":...} and nested {"installed":{"client_id":...}} formats
+    s = secrets.get("installed", secrets)
 
     creds = Credentials(
-        token=secrets.get("token"),
-        refresh_token=secrets.get("refresh_token"),
+        token=s.get("token"),
+        refresh_token=s.get("refresh_token"),
         token_uri="https://oauth2.googleapis.com/token",
-        client_id=secrets["client_id"],
-        client_secret=secrets["client_secret"],
+        client_id=s["client_id"],
+        client_secret=s["client_secret"],
         scopes=SCOPES,
     )
 

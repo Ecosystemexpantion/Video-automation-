@@ -6,6 +6,8 @@ GRAPH_API = "https://graph.facebook.com/v21.0"
 
 
 def post_video(video_path: str, title: str, description: str, hashtags: list[str]) -> str:
+    if not FB_ACCESS_TOKEN or not FB_PAGE_ID:
+        raise RuntimeError("Facebook not configured — skipping")
     tag_str = " ".join(f"#{h}" for h in hashtags)
     full_description = (
         f"{title}\n\n"

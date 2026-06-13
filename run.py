@@ -134,8 +134,6 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
             real_errors.append(f"{platform}: {msg}")
             print(f"      [{platform.upper()}] FAILED — {msg}")
 
-    _cleanup_tmp()
-
     successes = sum(1 for v in results.values() if v == "success")
     print(f"\n{'=' * 45}")
     print(f"  Pipeline complete — {successes}/{len(platforms)} platforms posted")
