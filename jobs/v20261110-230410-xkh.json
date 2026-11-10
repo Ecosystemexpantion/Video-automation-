@@ -12,7 +12,14 @@
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42911059625",
  "status": "running",
- "step": "Studying the reference: scenes, frames and speech",
- "progress": 18,
- "updated_at": 1794348312
+ "step": "Claude is designing the replication blueprint",
+ "progress": 30,
+ "updated_at": 1794348335,
+ "reference": {
+  "duration": 105.3,
+  "width": 576,
+  "height": 1024,
+  "scene_count": 1,
+  "transcript": "A fancy car! Is that dad? Did he come back for us? Stay behind me, babies. Don't go near the road. Daddy, you came back home. Don't get your hopes up. I'm only here to grab the rest of my things. I'm not staying. Perry, darling, hurry it up. This place smells like dirt. You've been gone for weeks, Perry. The kids barely had anything to eat. That's your problem now. I'm done living in poverty. I'm moving on to bigger things. He has a real woman now, sweetheart. A real woman doesn't smile while children are crying. Mom, is that all we have for dinner? We'll share it tonight, okay? Tomorrow morning? I'll head into town and find a job. You shouldn't have to struggle like this. Just because dad left us. Please, Mr. Leo, I'll clean, restock shelves, sweep, anything. I just need money to feed my children. I'm sorry, Stella. I can't hire someone with all that family drama attached to them. It's bad for business. My children going hungry isn't drama, sir. It's our reality. Mommy, where's your food? Aren't you eating? Oh, I ate earlier while cooking, sweetie. Eat up. No, you didn't. Great. Of all nights for the battery to die. And in the middle of nowhere. Ma'am, come inside quickly before you catch a cold. Oh, dear. You don't even know who I am. I know you're freezing in the rain. That's all that matters. Is this your last cup of tea, dear? Tea always tastes better when it's shared with a guest. Ma'am always gives away what she needs most. She had nothing and gave me everything. Should I change her life? Comment below."
+ }
 }
