@@ -21,9 +21,10 @@ def _kokoro(text: str, output_path: str):
     from kokoro_onnx import Kokoro
     import soundfile as sf
 
-    # af_heart = warm American female, very natural
-    kokoro = Kokoro("kokoro-v0_19.onnx", "voices.bin")
-    samples, sample_rate = kokoro.create(text, voice="af_heart", speed=1.05, lang="en-us")
+    # Kokoro v1.0 — much more natural than v0.19
+    # af_heart = warm American female; am_michael = natural American male
+    kokoro = Kokoro("kokoro-v1.0.onnx", "voices-v1.0.bin")
+    samples, sample_rate = kokoro.create(text, voice="af_heart", speed=1.0, lang="en-us")
     sf.write(output_path, samples, sample_rate)
 
 
