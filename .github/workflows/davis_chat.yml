@@ -1,0 +1,60 @@
+name: Davis Chat
+
+on:
+  workflow_dispatch:
+    inputs:
+      chat_id:
+        description: "Chat id (letters, digits, dashes)"
+        required: true
+      message:
+        description: "Message for Davis"
+        required: true
+  push:
+    branches:
+      - main
+    paths:
+      - "studio/tests/trigger-chat.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: davis-chat-${{ github.event.inputs.chat_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  chat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      CHAT_ID: ${{ github.event.inputs.chat_id || format('selftest-{0}', github.run_number) }}
+      CHAT_MESSAGE: ${{ github.event.inputs.message || 'In two sentences, what does studio/render.py do? Do not change any files.' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code
+        run: npm install -g --silent @anthropic-ai/claude-code
+
+      - name: Validate chat id
+        run: |
+          if ! [[ "$CHAT_ID" =~ ^[A-Za-z0-9-]{1,60}$ ]]; then
+            echo "Invalid chat id"; exit 1
+          fi
+
+      - name: Run Davis
+        run: python -m studio.chat --chat-id "$CHAT_ID" --message "$CHAT_MESSAGE"

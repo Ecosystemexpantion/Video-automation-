@@ -14,3 +14,9 @@ node_modules/
 .next/
 davis_app/.env.local
 token.json
+*.onnx
+voices-*.bin
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

@@ -3,9 +3,6 @@ name: Davis Video Pipeline
 on:
   schedule:
     - cron: "0 5,11,17,23 * * *"
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       platform:
