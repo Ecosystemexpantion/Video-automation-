@@ -49,6 +49,10 @@ def fetch_photo() -> Image.Image:
     raise RuntimeError("No photo found")
 
 
+CONFIG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")))
+LINES = LINES[: CONFIG.get("lines", len(LINES))]
+
+
 def voice_tracks():
     from kokoro_onnx import Kokoro
 
@@ -85,6 +89,7 @@ def main():
 
     job = {
         "prompt": PROMPT,
+        "steps": CONFIG.get("steps", 10),
         "seconds": seconds,
         "files": {name: b64(name) for name in ("scene.jpg", "speaker1.mp3", "speaker2.mp3")},
     }

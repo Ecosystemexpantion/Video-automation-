@@ -78,7 +78,7 @@ settings = {
     "speakers_locations": "0:50 50:100",
     "video_length": frames,
     "sliding_window_size": 81,
-    "num_inference_steps": 10,
+    "num_inference_steps": JOB.get("steps", 10),
     "guidance_scale": 1,
     "audio_guidance_scale": 1,
     "activated_loras": ["https://huggingface.co/DeepBeepMeep/Wan2.1/resolve/main/loras_accelerators/Wan2.1_I2V_14B_FusionX_LoRA.safetensors"],

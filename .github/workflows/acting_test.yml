@@ -13,8 +13,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: acting-test
-  cancel-in-progress: true
+  group: acting-test-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   acting-test:
@@ -60,10 +60,12 @@ jobs:
           set -e
           KUSER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
           echo "KUSER=$KUSER" >> "$GITHUB_ENV"
+          SLUG=$(python -c "import json; print(json.load(open('kaggle/acting_test/config.json'))['slug'])")
+          echo "SLUG=$SLUG" >> "$GITHUB_ENV"
           cat > build/kernel/kernel-metadata.json <<JSON
           {
-            "id": "$KUSER/davis-acting-test",
-            "title": "davis-acting-test",
+            "id": "$KUSER/$SLUG",
+            "title": "$SLUG",
             "code_file": "acting_test.py",
             "language": "python",
             "kernel_type": "script",
@@ -75,7 +77,7 @@ jobs:
           kaggle kernels push -p build/kernel
           sleep 60
           for i in $(seq 1 600); do
-            S=$(kaggle kernels status "$KUSER/davis-acting-test" 2>&1 || true)
+            S=$(kaggle kernels status "$KUSER/$SLUG" 2>&1 || true)
             echo "$(date -u +%H:%M) $S"
             case "$S" in *COMPLETE*|*ERROR*|*CANCEL*) break;; esac
             sleep 30
@@ -85,7 +87,7 @@ jobs:
         if: always()
         run: |
           mkdir -p result
-          kaggle kernels output "$KUSER/davis-acting-test" -p result || true
+          kaggle kernels output "$KUSER/$SLUG" -p result || true
           ls -la result
           python - <<'PY'
           import json, glob
