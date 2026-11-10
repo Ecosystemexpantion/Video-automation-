@@ -12,7 +12,14 @@
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
  "status": "running",
- "step": "Studying the reference: scenes, frames and speech",
- "progress": 18,
- "updated_at": 1794332097
+ "step": "Claude is designing the replication blueprint",
+ "progress": 30,
+ "updated_at": 1794332109,
+ "reference": {
+  "duration": 38.8,
+  "width": 1080,
+  "height": 1920,
+  "scene_count": 10,
+  "transcript": "You're wasting three hours a day on tasks a robot can do. Here are three everyday jobs you can hand to AI right now. Number one, your inbox. Let AI draft every reply in seconds. Paste the message and it writes a polished response you just approve. Number two, planning your week. Dump your chaos, get a clean schedule. It sorts your priorities so you stop staring at an endless list. Number three, summarizing. Feed it long articles and get the key points. No more reading 20 pages to find one answer you needed. Email planning summaries. Three chores gone starting today. Pick one tonight and feel how much lighter your day gets."
+ }
 }
