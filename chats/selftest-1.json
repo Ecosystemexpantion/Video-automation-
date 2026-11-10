@@ -5,8 +5,14 @@
    "role": "user",
    "text": "In two sentences, what does studio/render.py do? Do not change any files.",
    "ts": 1794331873
+  },
+  {
+   "role": "assistant",
+   "text": "studio/render.py turns a blueprint (a list of scenes, each with narration, a visual search query, and optional on-screen text) into a finished 1080x1920 vertical MP4 by synthesizing a voice-over for each scene (Kokoro TTS, falling back to gTTS), downloading matching portrait stock footage from Pexels, and compositing the clips with a darkening shade, timed word-by-word captions, and headline text over the synced audio.\n\nIt exposes a `render()` function that writes the output video plus a thumbnail and returns their paths and total duration, reporting progress through callbacks along the way.",
+   "ts": 1794331882,
+   "error": false
   }
  ],
- "pending": true,
- "updated_at": 1794331873
+ "pending": false,
+ "updated_at": 1794331882
 }
