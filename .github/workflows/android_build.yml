@@ -9,6 +9,9 @@ on:
       - ".github/workflows/android_build.yml"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -32,9 +35,22 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug -p android --no-daemon
 
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk davis-studio.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: davis-studio-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: davis-studio.apk
           retention-days: 30
+
+      - name: Publish APK to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete davis-studio-latest --yes --cleanup-tag || true
+          gh release create davis-studio-latest davis-studio.apk \
+            --title "Davis Studio (latest)" \
+            --notes "Latest Davis Studio Android build. Download davis-studio.apk and install it." \
+            --target "${{ github.sha }}"
