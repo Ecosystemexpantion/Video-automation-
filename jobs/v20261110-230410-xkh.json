@@ -2,24 +2,195 @@
  "id": "v20261110-230410-xkh",
  "created_at": 1794348307,
  "mode": "replicate",
- "topic": "",
+ "topic": "An emotional animated story of a struggling mango mother abandoned by her onion husband, who still shows kindness to a stranger",
  "notes": "make it a mango orange and onion character",
  "voice": "af_heart",
  "source_job": "",
- "title": "New video",
+ "title": "The Mango Mom Who Gave Everything",
  "error": null,
  "video_url": null,
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42911059625",
  "status": "running",
- "step": "Claude is designing the replication blueprint",
- "progress": 30,
- "updated_at": 1794348335,
+ "step": "Blueprint ready",
+ "progress": 40,
+ "updated_at": 1794348368,
  "reference": {
   "duration": 105.3,
   "width": 576,
   "height": 1024,
   "scene_count": 1,
   "transcript": "A fancy car! Is that dad? Did he come back for us? Stay behind me, babies. Don't go near the road. Daddy, you came back home. Don't get your hopes up. I'm only here to grab the rest of my things. I'm not staying. Perry, darling, hurry it up. This place smells like dirt. You've been gone for weeks, Perry. The kids barely had anything to eat. That's your problem now. I'm done living in poverty. I'm moving on to bigger things. He has a real woman now, sweetheart. A real woman doesn't smile while children are crying. Mom, is that all we have for dinner? We'll share it tonight, okay? Tomorrow morning? I'll head into town and find a job. You shouldn't have to struggle like this. Just because dad left us. Please, Mr. Leo, I'll clean, restock shelves, sweep, anything. I just need money to feed my children. I'm sorry, Stella. I can't hire someone with all that family drama attached to them. It's bad for business. My children going hungry isn't drama, sir. It's our reality. Mommy, where's your food? Aren't you eating? Oh, I ate earlier while cooking, sweetie. Eat up. No, you didn't. Great. Of all nights for the battery to die. And in the middle of nowhere. Ma'am, come inside quickly before you catch a cold. Oh, dear. You don't even know who I am. I know you're freezing in the rain. That's all that matters. Is this your last cup of tea, dear? Tea always tastes better when it's shared with a guest. Ma'am always gives away what she needs most. She had nothing and gave me everything. Should I change her life? Comment below."
+ },
+ "blueprint": {
+  "title": "The Mango Mom Who Gave Everything",
+  "topic": "An emotional animated story of a struggling mango mother abandoned by her onion husband, who still shows kindness to a stranger",
+  "style_analysis": [
+   "Hook is a shocking family question that drops you mid-drama",
+   "Very fast cuts driven by short dialogue lines, one or two sentences each",
+   "Pixar-style anthropomorphic fruit characters in a poor rural setting",
+   "Captions are one bold highlighted keyword centered low on screen",
+   "Tearful melodramatic tone building to a kindness twist",
+   "Ends with a 'to be continued' and a comment prompt"
+  ],
+  "hook": "A shiny car pulls up! Is that daddy coming home for us?",
+  "scenes": [
+   {
+    "narration": "A shiny car pulls up! Is that daddy coming home for us?",
+    "visual_query": "luxury car dirt road",
+    "on_screen_text": "ROAD"
+   },
+   {
+    "narration": "Stay behind me, little ones. Keep away from the road.",
+    "visual_query": "mother shielding children",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Daddy! You finally came back to us.",
+    "visual_query": "child running outside",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Don't get excited. I only came to collect my things. I'm not staying here.",
+    "visual_query": "man exiting fancy car",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Hurry up, sweetheart. This whole place reeks of mud.",
+    "visual_query": "elegant woman red dress",
+    "on_screen_text": "EAT"
+   },
+   {
+    "narration": "You vanished for weeks. Your children barely had a thing to eat.",
+    "visual_query": "poor woman farmhouse",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "That's your burden now. I'm finished living broke. I'm chasing a better life.",
+    "visual_query": "man walking away angry",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "He's got a real woman at his side now, honey.",
+    "visual_query": "glamorous woman smirking",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "A real woman doesn't grin while little children weep.",
+    "visual_query": "sad mother glaring",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Mom, is that really all we have for supper?",
+    "visual_query": "children dim kitchen lantern",
+    "on_screen_text": "MOM"
+   },
+   {
+    "narration": "We'll share it tonight, okay? Tomorrow I'll go into town and find work.",
+    "visual_query": "mother comforting children",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "You shouldn't have to suffer like this just because he left us.",
+    "visual_query": "child looking up sadly",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Please, Mr. Banks, I'll clean, stock shelves, anything. I only need to feed my kids.",
+    "visual_query": "woman begging grocery store",
+    "on_screen_text": "CLEAN"
+   },
+   {
+    "narration": "I'm sorry, Stella. I can't take on someone with all this family drama.",
+    "visual_query": "store manager crossed arms",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "It's simply bad for my business.",
+    "visual_query": "grocery store counter",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "My children starving isn't drama, sir. It's our everyday reality.",
+    "visual_query": "woman pleading sadly",
+    "on_screen_text": "SIR"
+   },
+   {
+    "narration": "Mommy, where's your plate? Why aren't you eating too?",
+    "visual_query": "child at dinner table",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Oh, I ate earlier while cooking, sweetie. Go ahead and finish up.",
+    "visual_query": "mother smiling tired",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "No, you didn't, mom.",
+    "visual_query": "child worried face",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Perfect. Of all the nights for this battery to die on me.",
+    "visual_query": "stranded car rainy night",
+    "on_screen_text": "DIE"
+   },
+   {
+    "narration": "And out here in the middle of nowhere.",
+    "visual_query": "old woman rain storm",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Ma'am, please come inside quickly before you catch a chill.",
+    "visual_query": "woman doorway holding towel",
+    "on_screen_text": "MATTERS"
+   },
+   {
+    "narration": "You don't even realize who I am, dear.",
+    "visual_query": "elderly woman surprised rain",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "I know you're freezing out there. That's the only thing that matters.",
+    "visual_query": "woman offering blanket",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Is this your very last cup of tea, dear?",
+    "visual_query": "tea cup cozy cabin",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Tea always tastes sweeter when it's shared with a guest.",
+    "visual_query": "two women sharing tea",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "She owned almost nothing, yet she handed me everything.",
+    "visual_query": "sleeping children candlelight",
+    "on_screen_text": "SHOULD"
+   },
+   {
+    "narration": "Should I change her whole life? Comment below.",
+    "visual_query": "old woman praying softly",
+    "on_screen_text": "TO BE CONTINUED PART 2"
+   }
+  ],
+  "caption_style": {
+   "color": "#F5E642",
+   "uppercase": true,
+   "position": "center",
+   "words_per_caption": 3
+  },
+  "description": "A mango mom gave everything despite having nothing. Should her life change? Comment below. Part 2 soon.",
+  "hashtags": [
+   "emotionalstory",
+   "fruitcartoon",
+   "kindness",
+   "singlemom",
+   "touchingstory",
+   "animation",
+   "tobecontinued"
+  ]
  }
 }
