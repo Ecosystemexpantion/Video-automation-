@@ -51,6 +51,8 @@ def _setup():
             f.write("Davis Studio app data. Managed automatically — do not edit.\n")
         with open(os.path.join(DATA_DIR, "index.json"), "w") as f:
             json.dump({"jobs": []}, f)
+        with open(os.path.join(DATA_DIR, "vercel.json"), "w") as f:
+            json.dump({"git": {"deploymentEnabled": False}}, f)
 
     _run(["git", "config", "user.name", "Davis Studio"], cwd=DATA_DIR)
     _run(["git", "config", "user.email", "davis-studio@users.noreply.github.com"], cwd=DATA_DIR)
