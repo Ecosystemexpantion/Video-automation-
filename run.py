@@ -33,7 +33,7 @@ def _upload_with_retry(fn, *args, retries=2, **kwargs):
                 raise
 
 
-def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
+def run_pipeline(dry_run: bool = False, platforms: list[str] = None, custom_topic: str = None):
     if platforms is None:
         platforms = ["youtube", "instagram", "facebook"]
 
@@ -41,15 +41,20 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
     print("  Davis Video Pipeline")
     print("=" * 45)
 
-    topic_row = get_next_topic()
-    if not topic_row:
-        print("[WARN] No topics in DB — seeding...")
-        seed_topics(TOPICS)
+    if custom_topic:
+        topic = custom_topic
+        topic_id = None
+        print(f"\n[1/6] Custom topic (from app):\n      {topic}")
+    else:
         topic_row = get_next_topic()
+        if not topic_row:
+            print("[WARN] No topics in DB — seeding...")
+            seed_topics(TOPICS)
+            topic_row = get_next_topic()
 
-    topic = topic_row["topic"]
-    topic_id = topic_row["id"]
-    print(f"\n[1/6] Topic selected:\n      {topic}")
+        topic = topic_row["topic"]
+        topic_id = topic_row["id"]
+        print(f"\n[1/6] Topic selected:\n      {topic}")
 
     if dry_run:
         print(f"\n[DRY RUN] Would generate script, voice, footage, video")
@@ -59,7 +64,8 @@ def run_pipeline(dry_run: bool = False, platforms: list[str] = None):
 
     print("\n[2/6] Generating script with Claude...")
     script = generate_script(topic)
-    mark_topic_used(topic_id)
+    if topic_id is not None:
+        mark_topic_used(topic_id)
     print(f"      Title: {script['title']}")
 
     print("\n[3/6] Generating voiceover...")
@@ -185,7 +191,12 @@ if __name__ == "__main__":
         default="all",
         help="Which platform to post to (default: all)",
     )
+    parser.add_argument(
+        "--topic",
+        default="",
+        help="Custom topic (overrides the topics database)",
+    )
     args = parser.parse_args()
 
     selected = None if args.platform == "all" else [args.platform]
-    run_pipeline(dry_run=args.dry_run, platforms=selected)
+    run_pipeline(dry_run=args.dry_run, platforms=selected, custom_topic=args.topic.strip() or None)

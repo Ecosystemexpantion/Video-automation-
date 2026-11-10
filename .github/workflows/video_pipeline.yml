@@ -16,6 +16,10 @@ on:
         description: "Dry run (true/false)"
         required: false
         default: "false"
+      custom_topic:
+        description: "Custom video topic (from Davis Studio app)"
+        required: false
+        default: ""
 
 jobs:
   generate-and-post:
@@ -80,11 +84,12 @@ jobs:
         run: |
           PLATFORM="${{ github.event.inputs.platform || 'all' }}"
           DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          CUSTOM_TOPIC="${{ github.event.inputs.custom_topic || '' }}"
 
           if [ "$DRY_RUN" = "true" ]; then
-            python run.py --dry-run --platform "$PLATFORM"
+            python run.py --dry-run --platform "$PLATFORM" --topic "$CUSTOM_TOPIC"
           else
-            python run.py --platform "$PLATFORM"
+            python run.py --platform "$PLATFORM" --topic "$CUSTOM_TOPIC"
           fi
 
       - name: Upload generated video as artifact
