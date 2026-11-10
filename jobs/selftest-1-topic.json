@@ -1,0 +1,18 @@
+{
+ "id": "selftest-1-topic",
+ "created_at": 1794331935,
+ "mode": "topic",
+ "topic": "Three everyday tasks you can hand to AI today",
+ "notes": "",
+ "voice": "af_heart",
+ "source_job": "",
+ "title": "Three everyday tasks you can hand to AI today",
+ "error": null,
+ "video_url": null,
+ "thumb_url": null,
+ "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
+ "status": "running",
+ "step": "Starting",
+ "progress": 5,
+ "updated_at": 1794331935
+}
