@@ -12,9 +12,9 @@
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42911059625",
  "status": "running",
- "step": "Editing the video",
- "progress": 70,
- "updated_at": 1794348452,
+ "step": "Publishing the finished video",
+ "progress": 92,
+ "updated_at": 1794348677,
  "reference": {
   "duration": 105.3,
   "width": 576,
