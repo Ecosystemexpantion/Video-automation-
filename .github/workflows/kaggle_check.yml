@@ -23,7 +23,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Kaggle CLI
-        run: pip install -q "kaggle>=2.0"
+        run: pip install -q "kaggle>=2.0" six
 
       - name: Check token
         run: |
