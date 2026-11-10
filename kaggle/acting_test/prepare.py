@@ -68,10 +68,14 @@ def voice_tracks():
 def main():
     os.makedirs(OUT, exist_ok=True)
     photo = fetch_photo()
-    photo.save(os.path.join(OUT, "scene.jpg"), quality=92)
+    photo.save(os.path.join(OUT, "scene.jpg"), quality=85)
     a, b = voice_tracks()
     sf.write(os.path.join(OUT, "speaker1.wav"), a, RATE)
     sf.write(os.path.join(OUT, "speaker2.wav"), b, RATE)
+    import subprocess
+    for n in ("speaker1", "speaker2"):
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", os.path.join(OUT, n + ".wav"),
+                        "-b:a", "64k", os.path.join(OUT, n + ".mp3")], check=True)
     seconds = len(a) / RATE
     print(f"Dialogue length: {seconds:.1f}s")
 
@@ -82,11 +86,12 @@ def main():
     job = {
         "prompt": PROMPT,
         "seconds": seconds,
-        "files": {name: b64(name) for name in ("scene.jpg", "speaker1.wav", "speaker2.wav")},
+        "files": {name: b64(name) for name in ("scene.jpg", "speaker1.mp3", "speaker2.mp3")},
     }
     here = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(here, "kernel_template.py")) as f:
         script = f.read().replace("__JOB_JSON__", json.dumps(job))
+    print("Kernel script size: %d KB" % (len(script) // 1024))
     run_dir = os.path.join(OUT, "kernel")
     os.makedirs(run_dir, exist_ok=True)
     with open(os.path.join(run_dir, "acting_test.py"), "w") as f:
