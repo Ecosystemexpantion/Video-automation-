@@ -2,24 +2,106 @@
  "id": "selftest-1-rep",
  "created_at": 1794332091,
  "mode": "replicate",
- "topic": "",
+ "topic": "Three simple habits to cut your grocery bill every week",
  "notes": "Make it about saving money on groceries",
  "voice": "am_michael",
  "source_job": "",
- "title": "New video",
+ "title": "Stop Overpaying for Groceries - 3 Easy Fixes",
  "error": null,
  "video_url": null,
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
  "status": "running",
- "step": "Claude is designing the replication blueprint",
- "progress": 30,
- "updated_at": 1794332109,
+ "step": "Blueprint ready",
+ "progress": 40,
+ "updated_at": 1794332128,
  "reference": {
   "duration": 38.8,
   "width": 1080,
   "height": 1920,
   "scene_count": 10,
   "transcript": "You're wasting three hours a day on tasks a robot can do. Here are three everyday jobs you can hand to AI right now. Number one, your inbox. Let AI draft every reply in seconds. Paste the message and it writes a polished response you just approve. Number two, planning your week. Dump your chaos, get a clean schedule. It sorts your priorities so you stop staring at an endless list. Number three, summarizing. Feed it long articles and get the key points. No more reading 20 pages to find one answer you needed. Email planning summaries. Three chores gone starting today. Pick one tonight and feel how much lighter your day gets."
+ },
+ "blueprint": {
+  "title": "Stop Overpaying for Groceries - 3 Easy Fixes",
+  "topic": "Three simple habits to cut your grocery bill every week",
+  "style_analysis": [
+   "Hook opens with a shocking cost/waste claim to stop the scroll",
+   "Fast cuts, roughly 2-4s per scene, 10 scenes mirroring reference rhythm",
+   "Concrete real-world footage: shopping, receipts, phones, kitchen",
+   "Big punchy captions, 3 words, centered, green highlight, uppercase",
+   "Numbered tips with a top headline bar for each section",
+   "Tone: direct, helpful, confident, friendly coach vibe",
+   "Ends with a recap plus a single clear action for tonight"
+  ],
+  "hook": "You're throwing away sixty dollars a week at the grocery store.",
+  "scenes": [
+   {
+    "narration": "You're throwing away sixty dollars a week at the grocery store.",
+    "visual_query": "grocery receipt long",
+    "on_screen_text": "Stop doing this"
+   },
+   {
+    "narration": "Here are three simple tricks to slash your grocery bill starting now.",
+    "visual_query": "woman shopping supermarket",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number one, shop with a plan.",
+    "visual_query": "writing shopping list",
+    "on_screen_text": "1. Plan meals"
+   },
+   {
+    "narration": "Write a meal list first and only buy exactly what you need.",
+    "visual_query": "fridge full food",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number two, compare the unit price.",
+    "visual_query": "price tag shelf",
+    "on_screen_text": "2. Unit price"
+   },
+   {
+    "narration": "Check the cost per ounce so you stop paying for fancy packaging.",
+    "visual_query": "hand comparing products",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number three, buy generic brands.",
+    "visual_query": "store brand products",
+    "on_screen_text": "3. Go generic"
+   },
+   {
+    "narration": "Same ingredients, half the price, and nobody can taste the difference.",
+    "visual_query": "stacked grocery money",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Plan, compare, go generic. Three habits, big savings, starting today.",
+    "visual_query": "happy woman kitchen",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Try one this week and watch how much cash stays in your pocket.",
+    "visual_query": "counting cash hands",
+    "on_screen_text": "Try one today"
+   }
+  ],
+  "caption_style": {
+   "color": "#00E676",
+   "uppercase": true,
+   "position": "center",
+   "words_per_caption": 3
+  },
+  "description": "Three dead-simple tricks to cut your grocery bill every week. Which one will you try tonight?",
+  "hashtags": [
+   "groceries",
+   "moneysaving",
+   "budgeting",
+   "frugalliving",
+   "savemoney",
+   "grocerytips",
+   "personalfinance"
+  ]
  }
 }

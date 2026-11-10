@@ -3,13 +3,13 @@
   {
    "id": "selftest-1-rep",
    "created_at": 1794332091,
-   "updated_at": 1794332109,
+   "updated_at": 1794332128,
    "mode": "replicate",
    "status": "running",
-   "step": "Claude is designing the replication blueprint",
-   "progress": 30,
-   "title": "New video",
-   "topic": "",
+   "step": "Blueprint ready",
+   "progress": 40,
+   "title": "Stop Overpaying for Groceries - 3 Easy Fixes",
+   "topic": "Three simple habits to cut your grocery bill every week",
    "error": null,
    "video_url": null,
    "thumb_url": null
