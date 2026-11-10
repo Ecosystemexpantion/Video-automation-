@@ -12,7 +12,7 @@
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
  "status": "running",
- "step": "Starting",
- "progress": 5,
- "updated_at": 1794331935
+ "step": "Claude is designing the video",
+ "progress": 30,
+ "updated_at": 1794331938
 }
