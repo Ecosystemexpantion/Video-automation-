@@ -27,6 +27,7 @@ jobs:
 
       - name: Check token
         run: |
+          export KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN#export KAGGLE_API_TOKEN=}"
           if [ -z "$KAGGLE_API_TOKEN" ]; then
             echo "::error::KAGGLE_API_TOKEN secret is not set"; exit 1
           fi
@@ -36,6 +37,7 @@ jobs:
       - name: Run a GPU test notebook on Kaggle
         run: |
           set -e
+          export KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN#export KAGGLE_API_TOKEN=}"
           USER=$(kaggle config view 2>/dev/null | awk -F': ' '/username/ {print $2}' | tr -d ' ')
           if [ -z "$USER" ]; then
             USER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
