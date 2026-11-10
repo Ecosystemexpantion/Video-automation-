@@ -1,6 +1,20 @@
 {
  "jobs": [
   {
+   "id": "selftest-1-rep",
+   "created_at": 1794332091,
+   "updated_at": 1794332092,
+   "mode": "replicate",
+   "status": "running",
+   "step": "Starting",
+   "progress": 5,
+   "title": "New video",
+   "topic": "",
+   "error": null,
+   "video_url": null,
+   "thumb_url": null
+  },
+  {
    "id": "selftest-1-topic",
    "created_at": 1794331935,
    "updated_at": 1794332084,

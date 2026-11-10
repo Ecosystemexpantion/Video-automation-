@@ -1,0 +1,18 @@
+{
+ "id": "selftest-1-rep",
+ "created_at": 1794332091,
+ "mode": "replicate",
+ "topic": "",
+ "notes": "Make it about saving money on groceries",
+ "voice": "am_michael",
+ "source_job": "",
+ "title": "New video",
+ "error": null,
+ "video_url": null,
+ "thumb_url": null,
+ "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
+ "status": "running",
+ "step": "Starting",
+ "progress": 5,
+ "updated_at": 1794332092
+}
