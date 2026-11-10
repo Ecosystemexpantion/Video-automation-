@@ -5,3 +5,4 @@ if torch.cuda.is_available():
         p = torch.cuda.get_device_properties(i)
         print(f"GPU {i}: {p.name} {p.total_memory // 2**30} GB")
 print(subprocess.run(["nvidia-smi"], capture_output=True, text=True).stdout)
+# run 2
