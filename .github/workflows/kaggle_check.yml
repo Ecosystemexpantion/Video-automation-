@@ -1,0 +1,66 @@
+name: Kaggle GPU Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "kaggle/gpu_check/**"
+      - ".github/workflows/kaggle_check.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Kaggle CLI
+        run: pip install -q "kaggle>=2.0"
+
+      - name: Check token
+        run: |
+          if [ -z "$KAGGLE_API_TOKEN" ]; then
+            echo "::error::KAGGLE_API_TOKEN secret is not set"; exit 1
+          fi
+          kaggle config view || true
+          kaggle kernels list --mine --page-size 1
+
+      - name: Run a GPU test notebook on Kaggle
+        run: |
+          set -e
+          USER=$(kaggle config view 2>/dev/null | awk -F': ' '/username/ {print $2}' | tr -d ' ')
+          if [ -z "$USER" ]; then
+            USER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
+          fi
+          echo "Kaggle user: $USER"
+          mkdir -p run && cp kaggle/gpu_check/check.py run/
+          cat > run/kernel-metadata.json <<JSON
+          {
+            "id": "$USER/davis-gpu-check",
+            "title": "davis-gpu-check",
+            "code_file": "check.py",
+            "language": "python",
+            "kernel_type": "script",
+            "is_private": true,
+            "enable_gpu": true,
+            "enable_internet": true
+          }
+          JSON
+          kaggle kernels push -p run
+          for i in $(seq 1 40); do
+            sleep 20
+            S=$(kaggle kernels status "$USER/davis-gpu-check" 2>&1 || true)
+            echo "$S"
+            case "$S" in *COMPLETE*|*complete*|*ERROR*|*error*|*CANCEL*) break;; esac
+          done
+          mkdir -p out && kaggle kernels output "$USER/davis-gpu-check" -p out || true
+          cat out/*.log 2>/dev/null | head -60 || true
+          grep -h "CUDA available\|GPU 0" out/* 2>/dev/null
