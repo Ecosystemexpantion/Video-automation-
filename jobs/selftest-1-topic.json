@@ -2,17 +2,98 @@
  "id": "selftest-1-topic",
  "created_at": 1794331935,
  "mode": "topic",
- "topic": "Three everyday tasks you can hand to AI today",
+ "topic": "Three simple daily tasks you can delegate to AI right now to save time.",
  "notes": "",
  "voice": "af_heart",
  "source_job": "",
- "title": "Three everyday tasks you can hand to AI today",
+ "title": "3 Everyday Tasks You Can Hand to AI Today",
  "error": null,
  "video_url": null,
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42865743289",
  "status": "running",
- "step": "Claude is designing the video",
- "progress": 30,
- "updated_at": 1794331938
+ "step": "Blueprint ready",
+ "progress": 40,
+ "updated_at": 1794331953,
+ "blueprint": {
+  "title": "3 Everyday Tasks You Can Hand to AI Today",
+  "topic": "Three simple daily tasks you can delegate to AI right now to save time.",
+  "style_analysis": [
+   "Hook is a bold time-waste callout to stop the scroll",
+   "Fast cuts driven by short narration lines",
+   "One task per scene, clean and concrete",
+   "Relatable footage of people doing boring chores",
+   "Bold centered captions with color highlight",
+   "Tone is friendly, confident, practical"
+  ],
+  "hook": "You're wasting three hours a day on tasks a robot can do.",
+  "scenes": [
+   {
+    "narration": "You're wasting three hours a day on tasks a robot can do.",
+    "visual_query": "stressed person clock",
+    "on_screen_text": "Stop doing this"
+   },
+   {
+    "narration": "Here are three everyday jobs you can hand to AI right now.",
+    "visual_query": "person using phone",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number one: your inbox. Let AI draft every reply in seconds.",
+    "visual_query": "woman typing laptop",
+    "on_screen_text": "1. Email replies"
+   },
+   {
+    "narration": "Paste the message, and it writes a polished response you just approve.",
+    "visual_query": "hands typing keyboard",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number two: planning your week. Dump your chaos, get a clean schedule.",
+    "visual_query": "messy desk planner",
+    "on_screen_text": "2. Planning"
+   },
+   {
+    "narration": "It sorts your priorities so you stop staring at an endless list.",
+    "visual_query": "person writing calendar",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Number three: summarizing. Feed it long articles and get the key points.",
+    "visual_query": "person reading documents",
+    "on_screen_text": "3. Summaries"
+   },
+   {
+    "narration": "No more reading twenty pages to find one answer you needed.",
+    "visual_query": "stack of papers",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Email, planning, summaries. Three chores, gone, starting today.",
+    "visual_query": "relaxed person smiling",
+    "on_screen_text": ""
+   },
+   {
+    "narration": "Pick one tonight and feel how much lighter your day gets.",
+    "visual_query": "person relaxing coffee",
+    "on_screen_text": "Try one tonight"
+   }
+  ],
+  "caption_style": {
+   "color": "#00E5A0",
+   "uppercase": true,
+   "position": "center",
+   "words_per_caption": 3
+  },
+  "description": "Three boring daily tasks you can hand to AI today and instantly save hours.",
+  "hashtags": [
+   "ai",
+   "productivity",
+   "aitools",
+   "worksmarter",
+   "timesaving",
+   "lifehacks",
+   "automation"
+  ]
+ }
 }

@@ -3,13 +3,13 @@
   {
    "id": "selftest-1-topic",
    "created_at": 1794331935,
-   "updated_at": 1794331938,
+   "updated_at": 1794331953,
    "mode": "topic",
    "status": "running",
-   "step": "Claude is designing the video",
-   "progress": 30,
-   "title": "Three everyday tasks you can hand to AI today",
-   "topic": "Three everyday tasks you can hand to AI today",
+   "step": "Blueprint ready",
+   "progress": 40,
+   "title": "3 Everyday Tasks You Can Hand to AI Today",
+   "topic": "Three simple daily tasks you can delegate to AI right now to save time.",
    "error": null,
    "video_url": null,
    "thumb_url": null
