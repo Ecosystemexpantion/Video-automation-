@@ -12,9 +12,9 @@
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42911059625",
  "status": "running",
- "step": "Recording the voice-over",
- "progress": 45,
- "updated_at": 1794348369,
+ "step": "Finding footage for each scene",
+ "progress": 55,
+ "updated_at": 1794348415,
  "reference": {
   "duration": 105.3,
   "width": 576,
