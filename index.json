@@ -3,16 +3,16 @@
   {
    "id": "v20261110-230410-xkh",
    "created_at": 1794348307,
-   "updated_at": 1794348677,
+   "updated_at": 1794348682,
    "mode": "replicate",
-   "status": "running",
-   "step": "Publishing the finished video",
-   "progress": 92,
+   "status": "done",
+   "step": "Done",
+   "progress": 100,
    "title": "The Mango Mom Who Gave Everything",
    "topic": "An emotional animated story of a struggling mango mother abandoned by her onion husband, who still shows kindness to a stranger",
    "error": null,
-   "video_url": null,
-   "thumb_url": null
+   "video_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/v20261110-230410-xkh.mp4",
+   "thumb_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/v20261110-230410-xkh.jpg"
   },
   {
    "id": "selftest-1-rep",

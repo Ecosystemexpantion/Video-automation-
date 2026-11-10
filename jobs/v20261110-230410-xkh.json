@@ -8,13 +8,13 @@
  "source_job": "",
  "title": "The Mango Mom Who Gave Everything",
  "error": null,
- "video_url": null,
- "thumb_url": null,
+ "video_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/v20261110-230410-xkh.mp4",
+ "thumb_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/v20261110-230410-xkh.jpg",
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/42911059625",
- "status": "running",
- "step": "Publishing the finished video",
- "progress": 92,
- "updated_at": 1794348677,
+ "status": "done",
+ "step": "Done",
+ "progress": 100,
+ "updated_at": 1794348682,
  "reference": {
   "duration": 105.3,
   "width": 576,
@@ -192,5 +192,6 @@
    "animation",
    "tobecontinued"
   ]
- }
+ },
+ "duration": 88.0
 }
