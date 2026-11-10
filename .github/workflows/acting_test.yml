@@ -1,0 +1,119 @@
+name: Acting Test (Kaggle GPU)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "kaggle/acting_test/**"
+      - ".github/workflows/acting_test.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: acting-test
+  cancel-in-progress: true
+
+jobs:
+  acting-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tools
+        run: |
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q "kaggle>=2.0" six kokoro-onnx==0.4.9 soundfile requests Pillow
+
+      - name: Restore voice model
+        id: voice-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            kokoro-v1.0.onnx
+            voices-v1.0.bin
+          key: kokoro-v1.0
+
+      - name: Download voice model
+        if: steps.voice-cache.outputs.cache-hit != 'true'
+        run: |
+          base=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0
+          curl -sSfL -o kokoro-v1.0.onnx "$base/kokoro-v1.0.onnx"
+          curl -sSfL -o voices-v1.0.bin "$base/voices-v1.0.bin"
+
+      - name: Prepare scene, voices and kernel
+        run: python kaggle/acting_test/prepare.py build
+
+      - name: Run on Kaggle GPU
+        run: |
+          set -e
+          KUSER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
+          echo "KUSER=$KUSER" >> "$GITHUB_ENV"
+          cat > build/kernel/kernel-metadata.json <<JSON
+          {
+            "id": "$KUSER/davis-acting-test",
+            "title": "davis-acting-test",
+            "code_file": "acting_test.py",
+            "language": "python",
+            "kernel_type": "script",
+            "is_private": true,
+            "enable_gpu": true,
+            "enable_internet": true
+          }
+          JSON
+          kaggle kernels push -p build/kernel
+          sleep 60
+          for i in $(seq 1 600); do
+            S=$(kaggle kernels status "$KUSER/davis-acting-test" 2>&1 || true)
+            echo "$(date -u +%H:%M) $S"
+            case "$S" in *COMPLETE*|*ERROR*|*CANCEL*) break;; esac
+            sleep 30
+          done
+
+      - name: Fetch output
+        if: always()
+        run: |
+          mkdir -p result
+          kaggle kernels output "$KUSER/davis-acting-test" -p result || true
+          ls -la result
+          python - <<'PY'
+          import json, glob
+          for f in glob.glob("result/*.log"):
+              try:
+                  for e in json.load(open(f)):
+                      print(e.get("data", ""), end="")
+              except Exception:
+                  print(open(f).read()[-20000:])
+          PY
+
+      - name: Publish video
+        if: always()
+        run: |
+          MP4=$(ls result/*.mp4 2>/dev/null | head -1 || true)
+          if [ -z "$MP4" ]; then echo "::error::No video produced"; exit 1; fi
+          NAME="acting-test-${{ github.run_number }}.mp4"
+          cp "$MP4" "$NAME"
+          gh release view davis-videos >/dev/null 2>&1 || gh release create davis-videos --title "Davis Studio videos" --notes "Managed automatically."
+          gh release upload davis-videos "$NAME" --clobber
+          echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$NAME"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acting-test
+          path: |
+            result/
+            build/*.jpg
+            build/*.wav
