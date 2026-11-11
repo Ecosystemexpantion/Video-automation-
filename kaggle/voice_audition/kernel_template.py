@@ -23,7 +23,7 @@ def run_py(name, code):
 
 # --- Dia: one pass for the whole two-person dialogue ---
 sh("pip install -q -U 'transformers>=4.56' accelerate soundfile")
-run_py("dia", '''
+run_py("run_dia", '''
     import json, torch
     from transformers import AutoProcessor, DiaForConditionalGeneration
     job = json.load(open("/kaggle/working/job.json"))
@@ -43,7 +43,7 @@ run_py("dia", '''
 
 # --- Chatterbox: each line with a consistent male / female voice ---
 sh("pip install -q chatterbox-tts")
-run_py("chatterbox", '''
+run_py("run_chatterbox", '''
     import json, torch, torchaudio as ta
     from chatterbox.tts import ChatterboxTTS
     job = json.load(open("/kaggle/working/job.json"))
