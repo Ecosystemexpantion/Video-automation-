@@ -1,0 +1,72 @@
+name: Voice Audition (Kaggle GPU)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "kaggle/voice_audition/**"
+
+permissions:
+  contents: write
+
+jobs:
+  audition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q "kaggle>=2.0" six kokoro-onnx==0.4.9 soundfile numpy
+      - id: voice-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            kokoro-v1.0.onnx
+            voices-v1.0.bin
+          key: kokoro-v1.0
+      - if: steps.voice-cache.outputs.cache-hit != 'true'
+        run: |
+          base=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0
+          curl -sSfL -o kokoro-v1.0.onnx "$base/kokoro-v1.0.onnx"
+          curl -sSfL -o voices-v1.0.bin "$base/voices-v1.0.bin"
+      - run: python kaggle/voice_audition/prepare.py build
+      - name: Run on Kaggle GPU
+        run: |
+          KUSER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
+          echo "KUSER=$KUSER" >> "$GITHUB_ENV"
+          cat > build/kernel/kernel-metadata.json <<JSON
+          {"id": "$KUSER/davis-voice-audition", "title": "davis-voice-audition", "code_file": "voice_audition.py",
+           "language": "python", "kernel_type": "script", "is_private": true, "enable_gpu": true, "enable_internet": true}
+          JSON
+          kaggle kernels push -p build/kernel
+          sleep 60
+          for i in $(seq 1 200); do
+            S=$(kaggle kernels status "$KUSER/davis-voice-audition" 2>&1 || true); echo "$(date -u +%H:%M) $S"
+            case "$S" in *COMPLETE*|*ERROR*|*CANCEL*) break;; esac; sleep 30
+          done
+      - name: Fetch and publish samples
+        if: always()
+        run: |
+          mkdir -p result && kaggle kernels output "$KUSER/davis-voice-audition" -p result || true
+          python -c "
+          import json,glob
+          for f in glob.glob('result/*.log'):
+              for e in json.load(open(f)): print(e.get('data',''), end='')
+          " | tail -80 || true
+          gh release view davis-videos >/dev/null 2>&1 || gh release create davis-videos --title "Davis Studio videos" --notes "Managed automatically."
+          cp build/kokoro.wav result/out/ 2>/dev/null || { mkdir -p result/out; cp build/kokoro.wav result/out/; }
+          for W in result/out/*.wav; do
+            N=voice-$(basename "$W" .wav).mp3
+            ffmpeg -loglevel error -y -i "$W" -b:a 128k "$N"
+            gh release upload davis-videos "$N" --clobber
+            echo "SAMPLE: https://github.com/${{ github.repository }}/releases/download/davis-videos/$N"
+          done
