@@ -31,10 +31,12 @@ jobs:
             mkdir -p "r/$SLUG"
             kaggle kernels output "$KUSER/$SLUG" -p "r/$SLUG" || continue
             ls -la "r/$SLUG" "r/$SLUG/out" 2>/dev/null || true
-            MP4=$(ls -t r/$SLUG/out/*.mp4 r/$SLUG/*.mp4 2>/dev/null | head -1 || true)
-            [ -z "$MP4" ] && { echo "No video for $SLUG"; continue; }
-            cp "$MP4" "$SLUG.mp4"
-            ffprobe -v error -show_entries format=duration:stream=width,height -of default=nw=1 "$SLUG.mp4" || true
-            gh release upload davis-videos "$SLUG.mp4" --clobber
-            echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$SLUG.mp4"
+            n=0
+            for MP4 in $(ls -tr r/$SLUG/out/*.mp4 r/$SLUG/*.mp4 2>/dev/null | tr ' ' '?'); do
+              n=$((n+1)); NAME="$SLUG-$n.mp4"
+              cp $MP4 "$NAME"
+              echo "$NAME: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$NAME")s"
+              gh release upload davis-videos "$NAME" --clobber
+              echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$NAME"
+            done
           done
