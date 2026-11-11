@@ -6,9 +6,9 @@ on:
     branches:
       - main
     paths:
-      - "kaggle/acting_test/**"
-      - "!kaggle/acting_test/publish.txt"
-      - ".github/workflows/acting_test.yml"
+      - "kaggle/acting_test/config.json"
+      - "kaggle/acting_test/prepare.py"
+      - "kaggle/acting_test/kernel_template.py"
 
 permissions:
   contents: write
@@ -105,15 +105,11 @@ jobs:
         if: always()
         run: |
           gh release view davis-videos >/dev/null 2>&1 || gh release create davis-videos --title "Davis Studio videos" --notes "Managed automatically."
-          n=0
-          for MP4 in $(ls -tr result/*.mp4 result/*/*.mp4 2>/dev/null | tr ' ' '?'); do
-            n=$((n+1)); NAME="acting-test-${{ github.run_number }}-$n.mp4"
-            cp $MP4 "$NAME"
-            echo "$NAME: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$NAME")s"
-            gh release upload davis-videos "$NAME" --clobber
-            echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$NAME"
-          done
-          [ "$n" -gt 0 ] || { echo "::error::No video produced"; exit 1; }
+          NAME="$SLUG.mp4"
+          python kaggle/acting_test/pick_final.py result "$NAME"
+          echo "Duration: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$NAME")s"
+          gh release upload davis-videos "$NAME" --clobber
+          echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$NAME"
 
       - name: Upload artifacts
         if: always()

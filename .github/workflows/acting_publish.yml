@@ -31,12 +31,8 @@ jobs:
             mkdir -p "r/$SLUG"
             kaggle kernels output "$KUSER/$SLUG" -p "r/$SLUG" || continue
             ls -la "r/$SLUG" "r/$SLUG/out" 2>/dev/null || true
-            n=0
-            for MP4 in $(ls -tr r/$SLUG/out/*.mp4 r/$SLUG/*.mp4 2>/dev/null | tr ' ' '?'); do
-              n=$((n+1)); NAME="$SLUG-$n.mp4"
-              cp $MP4 "$NAME"
-              echo "$NAME: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$NAME")s"
-              gh release upload davis-videos "$NAME" --clobber
-              echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$NAME"
-            done
+            python kaggle/acting_test/pick_final.py "r/$SLUG" "$SLUG.mp4" || continue
+            echo "Duration: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$SLUG.mp4")s"
+            gh release upload davis-videos "$SLUG.mp4" --clobber
+            echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$SLUG.mp4"
           done
