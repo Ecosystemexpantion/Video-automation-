@@ -22,8 +22,10 @@ def run_py(name, code):
     print(f"{name}: {'OK' if rc == 0 else 'FAILED'}", flush=True)
 
 # --- Dia: one pass for the whole two-person dialogue ---
-sh("pip install -q -U 'transformers>=4.56' accelerate soundfile")
-run_py("run_dia", '''
+SKIP_DIA = True  # Dia samples already published
+if not SKIP_DIA:
+  sh("pip install -q -U 'transformers>=4.56' accelerate soundfile")
+if not SKIP_DIA: run_py("run_dia", '''
     import json, torch
     from transformers import AutoProcessor, DiaForConditionalGeneration
     job = json.load(open("/kaggle/working/job.json"))
@@ -42,7 +44,9 @@ run_py("run_dia", '''
 ''')
 
 # --- Chatterbox: each line with a consistent male / female voice ---
-sh("pip install -q chatterbox-tts")
+# Keep Kaggle's own torch build: install Chatterbox without letting it pin torch.
+sh("pip install -q --no-deps chatterbox-tts")
+sh("pip install -q s3tokenizer conformer resemble-perth librosa diffusers safetensors omegaconf pyloudnorm")
 run_py("run_chatterbox", '''
     import json, torch, torchaudio as ta
     from chatterbox.tts import ChatterboxTTS
