@@ -69,10 +69,30 @@ def voice_tracks():
     return np.concatenate(left), np.concatenate(right)
 
 
+def man_side(path: str) -> str:
+    """Ask Claude which side of the photo the man is on, so each voice goes to the right face."""
+    import anthropic
+
+    with open(path, "rb") as f:
+        data = base64.b64encode(f.read()).decode()
+    msg = anthropic.Anthropic().messages.create(
+        model="claude-opus-4-8",
+        max_tokens=50,
+        messages=[{"role": "user", "content": [
+            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": data}},
+            {"type": "text", "text": "Two main people are in the foreground of this photo. Is the man on the left or the right? Answer with one word: left or right."},
+        ]}],
+    )
+    answer = "".join(b.text for b in msg.content if b.type == "text").strip().lower()
+    print("Claude says the man is on the:", answer)
+    return "right" if "right" in answer else "left"
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     photo = fetch_photo()
     photo.save(os.path.join(OUT, "scene.jpg"), quality=85)
+    side = man_side(os.path.join(OUT, "scene.jpg"))
     a, b = voice_tracks()
     sf.write(os.path.join(OUT, "speaker1.wav"), a, RATE)
     sf.write(os.path.join(OUT, "speaker2.wav"), b, RATE)
@@ -90,6 +110,8 @@ def main():
     job = {
         "prompt": PROMPT,
         "steps": CONFIG.get("steps", 10),
+        # Speaker 1 (the man, first track) is listed first.
+        "speakers_locations": "0:50 50:100" if side == "left" else "50:100 0:50",
         "seconds": seconds,
         "files": {name: b64(name) for name in ("scene.jpg", "speaker1.mp3", "speaker2.mp3")},
     }

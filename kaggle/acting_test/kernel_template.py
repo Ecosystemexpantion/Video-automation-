@@ -75,7 +75,7 @@ settings = {
     "audio_prompt_type": "PAB",
     "audio_guide": str(INP / "speaker1.mp3"),
     "audio_guide2": str(INP / "speaker2.mp3"),
-    "speakers_locations": "0:50 50:100",
+    "speakers_locations": JOB.get("speakers_locations", "0:50 50:100"),
     "video_length": frames,
     "sliding_window_size": 81,
     "num_inference_steps": JOB.get("steps", 10),
