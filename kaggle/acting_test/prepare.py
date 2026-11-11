@@ -21,10 +21,10 @@ RATE = 24000
 GAP = 0.35
 
 LINES = [
-    ("left", "am_michael", "Did you see what happened at the market today?"),
-    ("right", "af_heart", "No, tell me everything. Was it the new shop?"),
-    ("left", "am_michael", "Yes! They sold out of everything in one hour."),
-    ("right", "af_heart", "Then we are going there first thing tomorrow."),
+    ("man", "am_michael", "Did you see what happened at the market today?"),
+    ("woman", "af_heart", "No, tell me everything. Was it the new shop?"),
+    ("man", "am_michael", "Yes! They sold out of everything in one hour."),
+    ("woman", "af_heart", "Then we are going there first thing tomorrow."),
 ]
 PROMPT = ("A man on the left and a woman on the right sit at a cafe table having a lively, "
           "friendly conversation, natural facial expressions, subtle head movements, cinematic lighting")
@@ -53,13 +53,15 @@ CONFIG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 LINES = LINES[: CONFIG.get("lines", len(LINES))]
 
 
-def voice_tracks():
+def voice_tracks(left_person: str):
+    """Track 1 always belongs to whoever sits on the left: the engine binds the first track to the left face."""
     from kokoro_onnx import Kokoro
 
     kokoro = Kokoro("kokoro-v1.0.onnx", "voices-v1.0.bin")
     left, right = [], []
     gap = np.zeros(int(RATE * GAP), dtype=np.float32)
-    for side, voice, text in LINES:
+    for person, voice, text in LINES:
+        side = "left" if person == left_person else "right"
         samples, rate = kokoro.create(text, voice=voice, speed=1.0, lang="en-us")
         assert rate == RATE
         samples = np.asarray(samples, dtype=np.float32)
@@ -93,7 +95,7 @@ def main():
     photo = fetch_photo()
     photo.save(os.path.join(OUT, "scene.jpg"), quality=85)
     side = man_side(os.path.join(OUT, "scene.jpg"))
-    a, b = voice_tracks()
+    a, b = voice_tracks("man" if side == "left" else "woman")
     sf.write(os.path.join(OUT, "speaker1.wav"), a, RATE)
     sf.write(os.path.join(OUT, "speaker2.wav"), b, RATE)
     import subprocess
@@ -110,8 +112,7 @@ def main():
     job = {
         "prompt": PROMPT,
         "steps": CONFIG.get("steps", 10),
-        # Speaker 1 (the man, first track) is listed first.
-        "speakers_locations": "0:50 50:100" if side == "left" else "50:100 0:50",
+        "speakers_locations": "0:50 50:100",
         "seconds": seconds,
         "files": {name: b64(name) for name in ("scene.jpg", "speaker1.mp3", "speaker2.mp3")},
     }
