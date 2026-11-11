@@ -1,0 +1,40 @@
+name: Acting Test Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "kaggle/acting_test/publish.txt"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -q "kaggle>=2.0" six
+      - name: Fetch and publish every finished acting test
+        run: |
+          KUSER=$(python -c "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')")
+          gh release view davis-videos >/dev/null 2>&1 || gh release create davis-videos --title "Davis Studio videos" --notes "Managed automatically."
+          for SLUG in $(cat kaggle/acting_test/publish.txt); do
+            mkdir -p "r/$SLUG"
+            kaggle kernels output "$KUSER/$SLUG" -p "r/$SLUG" || continue
+            ls -la "r/$SLUG" "r/$SLUG/out" 2>/dev/null || true
+            MP4=$(ls -t r/$SLUG/out/*.mp4 r/$SLUG/*.mp4 2>/dev/null | head -1 || true)
+            [ -z "$MP4" ] && { echo "No video for $SLUG"; continue; }
+            cp "$MP4" "$SLUG.mp4"
+            ffprobe -v error -show_entries format=duration:stream=width,height -of default=nw=1 "$SLUG.mp4" || true
+            gh release upload davis-videos "$SLUG.mp4" --clobber
+            echo "VIDEO: https://github.com/${{ github.repository }}/releases/download/davis-videos/$SLUG.mp4"
+          done
