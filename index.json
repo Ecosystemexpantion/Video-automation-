@@ -3,11 +3,11 @@
   {
    "id": "omtest-1",
    "created_at": 1794926903,
-   "updated_at": 1794927731,
+   "updated_at": 1794927823,
    "mode": "openmontage",
    "status": "running",
    "step": "OpenMontage: compose (in_progress)",
-   "progress": 42,
+   "progress": 45,
    "title": "Make a 40-second vertical video - 3 simple ways a small busi",
    "topic": "Make a 40-second vertical video - 3 simple ways a small business owner can use AI to save 5 hours a week. Energetic, practical, real stock footage, natural narration, captions.",
    "error": null,
