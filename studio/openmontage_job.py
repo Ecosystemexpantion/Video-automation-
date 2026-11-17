@@ -35,6 +35,16 @@ Delivery requirements:
 - Finish with projects/<project>/renders/final.mp4 that passes OpenMontage's post-render self-review.
 - If a preferred path is blocked, pick the best available alternative, log the decision, and continue.
 
+On-screen speaking characters (lip sync):
+Whenever a person should be seen talking on screen, do NOT use OpenMontage's built-in talking_head / lip_sync
+tools. Use this repo's free GPU tool instead, which gives natural voices (Chatterbox) and real lip sync (InfiniteTalk):
+  python {talk_tool} <scenes.json> <out_dir>
+Read the docstring at the top of {talk_tool} for the scenes.json format. Give each scene a start-frame image
+with the speaking people's faces clearly visible (for example a Pexels photo matching the scene), set each line's
+speaker side and voice gender by looking at that image, and batch ALL talking shots into ONE call (it takes about
+15 minutes of setup plus about 5-6 minutes per second of speech, so keep talking shots short, 3-8 seconds each).
+Then edit the returned scene_<n>.mp4 clips into the timeline with their own audio (no extra narration over them).
+
 When the render is done, reply with one short paragraph: the title, the pipeline used, and what the video shows."""
 
 
@@ -92,6 +102,7 @@ def main():
             ref_dir = os.path.join(OM_DIR, "inputs")
             ref = store.download_reference(args.job_id, ref_dir)
             reference = f"\nReference video to study and build from (keep its pacing, hook and structure): {ref}\n"
+            store.delete_reference(args.job_id)
 
         done = threading.Event()
 
@@ -104,7 +115,8 @@ def main():
 
         threading.Thread(target=heartbeat, daemon=True).start()
         result = subprocess.run(
-            ["claude", "-p", PROMPT.format(brief=args.brief, reference=reference),
+            ["claude", "-p", PROMPT.format(brief=args.brief, reference=reference,
+                                        talk_tool=os.path.abspath(os.path.join(os.path.dirname(__file__), "talking_scene.py"))),
              "--model", "opus", "--output-format", "json",
              "--dangerously-skip-permissions", "--max-turns", "400"],
             cwd=OM_DIR, capture_output=True, text=True, timeout=5 * 3600,

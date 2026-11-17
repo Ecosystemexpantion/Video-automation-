@@ -153,7 +153,7 @@ fun CreateScreen(vm: AppViewModel, onOpenLibrary: () -> Unit) {
             Icon(Icons.Filled.AutoAwesome, null); Spacer(Modifier.width(8.dp))
             Text(if (mode == 0) "Replicate this video" else "Generate video", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
-        Text("Takes about 5–8 minutes in the cloud. You can close the app; it keeps going.",
+        Text("OpenMontage produces it in the cloud in about 15–30 minutes. You can close the app; it keeps going.",
             color = TextLow, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp))
 
         val active = vm.jobs.filter { it.isActive }
@@ -429,4 +429,4 @@ fun SettingsScreen(vm: AppViewModel) {
     }
 }
 
-const val BuildConfigVersion = "2.0"
+const val BuildConfigVersion = "3.0"

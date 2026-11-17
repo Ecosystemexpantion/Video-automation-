@@ -292,8 +292,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 createState = CreateState.Starting
                 gh().dispatch(
-                    "studio_job.yml",
-                    mapOf("job_id" to id, "mode" to "replicate", "notes" to notes.trim(), "voice" to voice),
+                    "openmontage_job.yml",
+                    mapOf(
+                        "job_id" to id,
+                        "reference" to "true",
+                        "brief" to brief(
+                            "Study the uploaded reference video and make a new video that recreates its style, pacing, hook and structure.",
+                            notes, voice,
+                        ),
+                    ),
                 )
                 addPending(id, "replicate", "Replicating your video", notes.trim())
                 createState = CreateState.Idle
@@ -312,11 +319,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 gh().dispatch(
-                    "studio_job.yml",
-                    mapOf(
-                        "job_id" to id, "mode" to "topic", "topic" to topic.trim(),
-                        "notes" to notes.trim(), "voice" to voice,
-                    ),
+                    "openmontage_job.yml",
+                    mapOf("job_id" to id, "brief" to brief("Make a video about: ${topic.trim()}", notes, voice)),
                 )
                 addPending(id, "topic", topic.trim().take(60), topic.trim())
                 createState = CreateState.Idle
@@ -333,10 +337,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 gh().dispatch(
-                    "studio_job.yml",
+                    "openmontage_job.yml",
                     mapOf(
-                        "job_id" to id, "mode" to "remix", "source_job" to source.summary.id,
-                        "notes" to notes.trim(), "voice" to source.voice,
+                        "job_id" to id,
+                        "brief" to brief(
+                            "Make a fresh new version of an earlier video titled \"${source.summary.title}\" " +
+                                "(${source.summary.topic}). Same topic and energy, but a new hook, new wording and new visuals.",
+                            notes, source.voice,
+                        ),
                     ),
                 )
                 addPending(id, "remix", "Remix: ${source.summary.title}".take(60), source.summary.topic)
@@ -345,6 +353,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 jobsError = e.message ?: "Could not start the remix."
             }
         }
+    }
+
+    /** Turns the owner's choices into one plain-language brief for OpenMontage. */
+    private fun brief(task: String, notes: String, voice: String): String {
+        val voiceLabel = VOICES.firstOrNull { it.id == voice }?.label ?: "natural"
+        val parts = mutableListOf(task)
+        if (notes.isNotBlank()) parts += "Owner's directions: ${notes.trim()}"
+        parts += "Narrator voice preference: $voiceLabel."
+        return parts.joinToString(" ").take(4000)
     }
 
     fun clearCreateError() {
