@@ -3,11 +3,11 @@
   {
    "id": "omtest-2",
    "created_at": 1794931174,
-   "updated_at": 1794933209,
+   "updated_at": 1794933301,
    "mode": "openmontage",
    "status": "running",
    "step": "OpenMontage: assets (in_progress)",
-   "progress": 81,
+   "progress": 84,
    "title": "Make a 30-second vertical video for small business owners: \"",
    "topic": "Make a 30-second vertical video for small business owners: \"Stop answering the same customer question 50 times a day.\" Open with a 5-second on-screen scene of a friendly shop owner talking straight to camera, with natural voice and real lip sync, saying the hook. Then cut to real stock footage with ",
    "error": null,
