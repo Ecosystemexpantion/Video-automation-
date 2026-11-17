@@ -1,0 +1,82 @@
+name: OpenMontage Job
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: "Job id (letters, digits, dashes)"
+        required: true
+      brief:
+        description: "What to make"
+        required: true
+      reference:
+        description: "true if a reference video was uploaded to the inbox"
+        required: false
+        default: ""
+  push:
+    branches:
+      - main
+    paths:
+      - "studio/tests/trigger-openmontage.txt"
+
+permissions:
+  contents: write
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      OM_COMMIT: 2e003e65fa99a0f329478a2c1cdcf26bc481933a
+      JOB_ID: ${{ github.event.inputs.job_id || format('omtest-{0}', github.run_number) }}
+      JOB_BRIEF: "${{ github.event.inputs.brief || 'Make a 40-second vertical video - 3 simple ways a small business owner can use AI to save 5 hours a week. Energetic, practical, real stock footage, natural narration, captions.' }}"
+      JOB_REF: ${{ github.event.inputs.reference }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install OpenMontage
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          git clone -q https://github.com/calesthio/OpenMontage.git OpenMontage
+          cd OpenMontage && git checkout -q "$OM_COMMIT"
+          python -m pip install -q 'pip>=26.2.2' 'certifi>=2026.10.19'
+          python -m pip install -q -r requirements.txt
+          python -m pip install -q piper-tts || true
+          (cd remotion-composer && npm install --silent)
+          cp .env.example .env
+          echo "PEXELS_API_KEY=$PEXELS_API_KEY" >> .env
+
+      - name: Install Claude Code
+        run: npm install -g --silent @anthropic-ai/claude-code
+
+      - name: Validate job id
+        run: |
+          [[ "$JOB_ID" =~ ^[A-Za-z0-9-]{1,60}$ ]] || { echo "Invalid job id"; exit 1; }
+
+      - name: Produce video
+        run: |
+          REF_ARG=""
+          [ "$JOB_REF" = "true" ] && REF_ARG="--reference yes"
+          python -m studio.openmontage_job --job-id "$JOB_ID" --brief "$JOB_BRIEF" $REF_ARG
+
+      - name: Keep project files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openmontage-${{ env.JOB_ID }}
+          path: |
+            OpenMontage/projects/**/*.json
+            OpenMontage/projects/**/*.md
+            OpenMontage/projects/**/renders/*.mp4
+          retention-days: 7
