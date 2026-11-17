@@ -4,12 +4,12 @@
  "mode": "openmontage",
  "topic": "Make a 30-second vertical video for small business owners: \"Stop answering the same customer question 50 times a day.\" Open with a 5-second on-screen scene of a friendly shop owner talking straight to camera, with natural voice and real lip sync, saying the hook. Then cut to real stock footage with ",
  "title": "Make a 30-second vertical video for small business owners: \"",
- "error": null,
+ "error": "OpenMontage finished without a rendered video. Credit balance is too low",
  "video_url": null,
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/44120401339",
- "status": "running",
+ "status": "failed",
  "step": "OpenMontage: assets (in_progress)",
  "progress": 85,
- "updated_at": 1794937883
+ "updated_at": 1794937945
 }
