@@ -3,15 +3,15 @@
   {
    "id": "omtest-1",
    "created_at": 1794926903,
-   "updated_at": 1794928409,
+   "updated_at": 1794928415,
    "mode": "openmontage",
-   "status": "running",
-   "step": "Publishing the finished video",
-   "progress": 92,
+   "status": "done",
+   "step": "Done",
+   "progress": 100,
    "title": "Make a 40-second vertical video - 3 simple ways a small busi",
    "topic": "Make a 40-second vertical video - 3 simple ways a small business owner can use AI to save 5 hours a week. Energetic, practical, real stock footage, natural narration, captions.",
    "error": null,
-   "video_url": null,
+   "video_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/omtest-1.mp4",
    "thumb_url": null
   },
   {

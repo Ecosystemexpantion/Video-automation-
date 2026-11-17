@@ -5,11 +5,12 @@
  "topic": "Make a 40-second vertical video - 3 simple ways a small business owner can use AI to save 5 hours a week. Energetic, practical, real stock footage, natural narration, captions.",
  "title": "Make a 40-second vertical video - 3 simple ways a small busi",
  "error": null,
- "video_url": null,
+ "video_url": "https://github.com/Ecosystemexpantion/Video-automation-/releases/download/davis-videos/omtest-1.mp4",
  "thumb_url": null,
  "run_url": "https://github.com/Ecosystemexpantion/Video-automation-/actions/runs/44106929522",
- "status": "running",
- "step": "Publishing the finished video",
- "progress": 92,
- "updated_at": 1794928409
+ "status": "done",
+ "step": "Done",
+ "progress": 100,
+ "updated_at": 1794928415,
+ "summary": "**3 AI Shortcuts That Save You 5 Hours a Week** is rendered at `projects/ai-saves-5-hours/renders/final.mp4` (39.3s, 1080x1920, 30fps) and passed OpenMontage's post-render self-review with no issues, including a 112/112-word narration check. It went through the `animated-explainer` pipeline (research → proposal → script → scene plan → assets → edit → compose → publish), with every gate self-approved under the owner's pre-authorization, logged first as decision d-001. It uses real Pexels footage, Piper narration with the \"ryan-high\" voice, a royalty-free Pixabay music track, Remotion rendering and word-by-word karaoke captions. The video opens on a stressed owner at a laptop under \"SAVE 5 HOURS A WEEK\", then gives three tips, each with a numbered label and an hours-saved tag: let AI draft your email replies (+2 hrs), let AI give the first reply to repeat customer questions from your FAQ (+1.5 hrs), and batch a week of social posts in one sitting (+1.5 hrs). It closes on a smiling café owner and a shop owner flipping the sign to OPEN, with \"5 HRS back every week\" and \"Pick one tip and try it today.\" Two things changed in this environment: I installed the free local `faster-whisper` package to get word timings for the captions, and I added an optional overlay `scale` to `remotion-composer/src/Explainer.tsx` because the stock titles were unreadable in vertical video. It defaults to 1, so other projects render the same, and the edit is uncommitted."
 }
