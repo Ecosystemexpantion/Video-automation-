@@ -7,6 +7,10 @@ on:
         description: "What the film is about"
         required: false
         default: ""
+      design_run:
+        description: "Reuse the design from this earlier run id (skips script + design)"
+        required: false
+        default: ""
   push:
     branches:
       - main
@@ -24,6 +28,7 @@ env:
 
 jobs:
   script-and-design:
+    if: github.event.inputs.design_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -67,6 +72,7 @@ jobs:
 
   render:
     needs: script-and-design
+    if: always() && needs.script-and-design.result != 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
@@ -78,6 +84,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: design
+          run-id: ${{ github.event.inputs.design_run || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Upload assets to Kaggle
         run: |
           mkdir -p assets && cp -r design/out/frames assets/frames && cp -r design/out/refs_voice assets/refs
@@ -110,6 +118,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: design
+          run-id: ${{ github.event.inputs.design_run || github.run_id }}
+          github-token: ${{ github.token }}
       - uses: actions/download-artifact@v4
         with:
           name: shots

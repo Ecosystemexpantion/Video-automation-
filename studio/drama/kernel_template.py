@@ -8,7 +8,8 @@ CFG = json.loads(r'''__CFG_JSON__''')
 MODE, SHARD, SHARDS = CFG["mode"], CFG.get("shard", 0), CFG.get("shards", 1)
 SP = CFG["screenplay"]
 WORK = Path("/kaggle/working"); OUT = WORK / "out"; OUT.mkdir(exist_ok=True)
-ASSETS = next((Path(p) for p in glob.glob("/kaggle/input/*") if Path(p, "frames").exists() or Path(p, "refs").exists()), None)
+ASSETS = next((Path(p).parent for p in sorted(glob.glob("/kaggle/input/**/refs", recursive=True))), None)
+print("ASSETS dir:", ASSETS, glob.glob("/kaggle/input/**", recursive=True)[:40])
 t0 = time.time()
 W, H = 832, 480
 
