@@ -38,7 +38,7 @@ def refs(sp_path, out_dir):
 def push(sp_path, mode, slug, shard=0, shards=1, dataset=""):
     d = Path("kernel_" + slug); shutil.rmtree(d, ignore_errors=True); d.mkdir()
     cfg = {"mode": mode, "shard": shard, "shards": shards, "screenplay": json.load(open(sp_path)), "steps": 6}
-    (d / "drama.py").write_text((HERE / "kernel_template.py").read_text().replace("__CFG_JSON__", json.dumps(cfg)))
+    (d / "drama.py").write_text((HERE / ("sound_kernel.py" if mode == "sound" else "kernel_template.py")).read_text().replace("__CFG_JSON__", json.dumps(cfg)))
     user = kuser()
     meta = {"id": f"{user}/{slug}", "title": slug, "code_file": "drama.py", "language": "python",
             "kernel_type": "script", "is_private": True, "enable_gpu": True, "enable_internet": True}
@@ -87,10 +87,11 @@ def dataset(src_dir, slug):
         time.sleep(15)
 
 
-def assemble(sp_path, shots_dir, out_path):
+def assemble(sp_path, shots_dir, out_path, sound_dir=""):
     """Join every shot in screenplay order with burned-in dialogue subtitles."""
     sp = json.load(open(sp_path)); shots = Path(shots_dir); work = Path("assemble"); work.mkdir(exist_ok=True)
     parts, srt, t, n = [], [], 0.0, 1
+    cue_pos = {}
     def ts(x): return f"{int(x//3600):02d}:{int(x%3600//60):02d}:{int(x%60):02d},{int((x%1)*1000):03d}"
     for s in sp["shots"]:
         src = shots / f"shot_{s['id']}.mp4"
@@ -99,10 +100,31 @@ def assemble(sp_path, shots_dir, out_path):
         norm = work / f"n{s['id']}.mp4"
         # every clip -> 832x480, 25 fps, stereo 44.1k audio (silent if the shot has none)
         has_audio = "audio" in sh(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(src)]).stdout
+        vdur = float(sh(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(src)]).stdout)
+        talk = bool(s.get("lines"))
+        idx = sp["shots"].index(s); frac = idx / max(1, len(sp["shots"]) - 1)
+        cue = "warm" if frac > 0.8 else ("calm" if talk or frac < 0.2 else "fight")
+        snd = Path(sound_dir) if sound_dir else None
+        sfx = snd / f"sfx_{s['id']}.flac" if snd else None
+        mus = snd / f"music_{cue}.wav" if snd else None
         cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src)]
-        if not has_audio:
-            cmd += ["-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest"]
-        cmd += ["-vf", "scale=832:480:force_original_aspect_ratio=decrease,pad=832:480:(ow-iw)/2:(oh-ih)/2,fps=25",
+        mix, n_in = [], 1
+        if has_audio:
+            mix.append("[0:a]aresample=44100,aformat=channel_layouts=stereo,volume=1.0[a0]")
+        if sfx and sfx.exists():
+            cmd += ["-i", str(sfx)]
+            mix.append(f"[{n_in}:a]aresample=44100,aformat=channel_layouts=stereo,volume={0.25 if talk else 1.0}[a{n_in}]"); n_in += 1
+        if mus and mus.exists():
+            off = cue_pos.get(cue, 0.0); cue_pos[cue] = off + vdur
+            cmd += ["-stream_loop", "-1", "-ss", f"{off % 29:.2f}", "-i", str(mus)]
+            mix.append(f"[{n_in}:a]aresample=44100,aformat=channel_layouts=stereo,volume={0.12 if talk else 0.3}[a{n_in}]"); n_in += 1
+        if not mix:
+            cmd += ["-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo"]
+            mix.append("[1:a]anull[a1]"); labels = "[a1]"
+        labels = "".join(m[m.rindex("["):] for m in mix)
+        fc = ";".join(mix) + f";{labels}amix=inputs={len(mix)}:duration=longest:normalize=0[aout]"
+        cmd += ["-filter_complex", fc, "-map", "0:v", "-map", "[aout]", "-t", f"{vdur:.3f}",
+                "-vf", "scale=832:480:force_original_aspect_ratio=decrease,pad=832:480:(ow-iw)/2:(oh-ih)/2,fps=25",
                 "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-ar", "44100", "-ac", "2", str(norm)]
         sh(cmd)
         dur = float(sh(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(norm)]).stdout)

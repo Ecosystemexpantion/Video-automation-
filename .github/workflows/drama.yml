@@ -11,6 +11,10 @@ on:
         description: "Reuse the design from this earlier run id (skips script + design)"
         required: false
         default: ""
+      shots_run:
+        description: "Reuse rendered shots from this earlier run id (skips render)"
+        required: false
+        default: ""
   push:
     branches:
       - main
@@ -72,7 +76,7 @@ jobs:
 
   render:
     needs: script-and-design
-    if: always() && needs.script-and-design.result != 'failure'
+    if: always() && needs.script-and-design.result != 'failure' && github.event.inputs.shots_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
@@ -108,8 +112,47 @@ jobs:
           name: shots
           path: shots/
 
-  assemble:
+  sound:
     needs: render
+    if: always() && needs.render.result != 'failure' && needs.render.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -q "kaggle>=2.0" six
+      - uses: actions/download-artifact@v4
+        with:
+          name: design
+          run-id: ${{ github.event.inputs.design_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: shots
+          path: shots
+          run-id: ${{ github.event.inputs.shots_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Sound effects (MMAudio) and score (MusicGen) on GPU
+        run: |
+          python studio/drama/run.py dataset shots davis-drama-shots
+          python studio/drama/run.py push screenplay.json sound davis-drama-sound 0 1 davis-drama-shots
+          python studio/drama/run.py wait davis-drama-sound 180
+      - name: Collect sound
+        if: always()
+        run: |
+          python studio/drama/run.py fetch davis-drama-sound snd
+          mkdir -p sound && cp snd/out/* sound/ 2>/dev/null || true
+          ls sound
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sound
+          path: sound/
+
+  assemble:
+    needs: [render, sound]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -124,8 +167,15 @@ jobs:
         with:
           name: shots
           path: shots
+          run-id: ${{ github.event.inputs.shots_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: sound
+          path: sound
       - name: Edit the film
         run: |
-          python3 studio/drama/run.py assemble screenplay.json shots "$TAG.mp4"
+          python3 studio/drama/run.py assemble screenplay.json shots "$TAG.mp4" sound
           gh release upload davis-videos "$TAG.mp4" --clobber
           echo "FILM: https://github.com/${{ github.repository }}/releases/download/davis-videos/$TAG.mp4"
