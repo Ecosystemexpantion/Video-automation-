@@ -3,7 +3,7 @@
   {
    "id": "omtest-2",
    "created_at": 1794931174,
-   "updated_at": 1794934129,
+   "updated_at": 1794934221,
    "mode": "openmontage",
    "status": "running",
    "step": "OpenMontage: assets (in_progress)",
