@@ -125,10 +125,10 @@ def main():
 
         progress("Publishing the finished video", 92)
         job["summary"] = summary[:1500]
-        job["video_url"] = store.upload_to_release(render, f"{args.job_id}.mp4")
         thumb = os.path.join(os.path.dirname(render), "thumb.jpg")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", "1", "-i", render,
                         "-frames:v", "1", "-vf", "scale=360:-2", thumb])
+        job["video_url"] = store.upload_to_release(render, f"{args.job_id}.mp4")
         if os.path.exists(thumb):
             job["thumb_url"] = store.upload_to_release(thumb, f"{args.job_id}.jpg")
         progress("Done", 100, status="done")
