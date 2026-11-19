@@ -68,7 +68,9 @@ def fetch(slug, out_dir):
     sh(["kaggle", "kernels", "output", f"{user}/{slug}", "-p", str(out)], check=False)
     for log in out.glob("*.log"):
         try:
-            print("".join(e.get("data", "") for e in json.load(open(log)))[-6000:])
+            txt = "".join(e.get("data", "") for e in json.load(open(log)))
+            print("\n".join(l for l in txt.splitlines() if any(k in l for k in ("FAILED", "made ", "shard ", "Error", "error:", "voiced shot"))))
+            print(txt[-4000:])
         except Exception:
             print(log.read_text()[-6000:])
 
