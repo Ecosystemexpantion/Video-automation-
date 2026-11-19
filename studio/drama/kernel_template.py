@@ -136,7 +136,7 @@ if MODE == "render":
         secs = sf.info(str(left)).duration
         st = {"model_type": "infinitetalk_multi" if two else "infinitetalk",
               "prompt": f"{STYLE}. {s.get('visual', '')}. Characters talk with expressive faces and natural mouth movement.",
-              "resolution": f"{RW}x{RH}", "image_prompt_type": "T", "video_prompt_type": "0KI",
+              "resolution": f"{W}x{H}" if two else f"{RW}x{RH}", "image_prompt_type": "T", "video_prompt_type": "0KI",
               "image_refs": [str(frame)], "audio_prompt_type": "PAB" if two else "A",
               "audio_guide": str(left), "video_length": int(math.ceil(secs * 25)) + 1,
               "sliding_window_size": 81, "num_inference_steps": CFG.get("steps", 4),
@@ -145,6 +145,19 @@ if MODE == "render":
         if two:
             st.update({"audio_guide2": str(right), "speakers_locations": "0:50 50:100"})
         log(f"shot {s['id']}: dialogue {secs:.1f}s ({'two-shot' if two else 'single'})")
+        if generate(st, OUT / f"shot_{s['id']}.mp4"):
+            continue
+        # two-speaker InfiniteTalk can fail at the fast resolution: retry at full size
+        st["resolution"] = f"{W}x{H}"
+        log(f"shot {s['id']}: retry at {W}x{H}")
+        if generate(st, OUT / f"shot_{s['id']}.mp4") or not two:
+            continue
+        # last resort: one mixed voice track, single-speaker model
+        mixed = WORK / f"shot{s['id']}_mix.wav"
+        sh(f"ffmpeg -loglevel error -y -i {left} -i {right} -filter_complex amix=inputs=2:normalize=0 {mixed}")
+        st.update({"model_type": "infinitetalk", "audio_prompt_type": "A", "audio_guide": str(mixed)})
+        st.pop("audio_guide2", None); st.pop("speakers_locations", None)
+        log(f"shot {s['id']}: retry single-track")
         generate(st, OUT / f"shot_{s['id']}.mp4")
     for s in move:
         frame = ASSETS / "frames" / f"shot_{s['id']}.png"
