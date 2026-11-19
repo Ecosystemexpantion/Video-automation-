@@ -12,6 +12,7 @@ ASSETS = next((Path(p).parent for p in sorted(glob.glob("/kaggle/input/**/refs",
 print("ASSETS dir:", ASSETS, glob.glob("/kaggle/input/**", recursive=True)[:40])
 t0 = time.time()
 W, H = 832, 480
+RW, RH = 640, 368  # fast mode: render resolution (assemble upscales to 832x480)
 
 def log(m): print(f"[{(time.time()-t0)/60:6.1f} min] {m}", flush=True)
 def sh(c):
@@ -135,10 +136,10 @@ if MODE == "render":
         secs = sf.info(str(left)).duration
         st = {"model_type": "infinitetalk_multi" if two else "infinitetalk",
               "prompt": f"{STYLE}. {s.get('visual', '')}. Characters talk with expressive faces and natural mouth movement.",
-              "resolution": f"{W}x{H}", "image_prompt_type": "T", "video_prompt_type": "0KI",
+              "resolution": f"{RW}x{RH}", "image_prompt_type": "T", "video_prompt_type": "0KI",
               "image_refs": [str(frame)], "audio_prompt_type": "PAB" if two else "A",
               "audio_guide": str(left), "video_length": int(math.ceil(secs * 25)) + 1,
-              "sliding_window_size": 81, "num_inference_steps": CFG.get("steps", 6),
+              "sliding_window_size": 81, "num_inference_steps": CFG.get("steps", 4),
               "guidance_scale": 1, "audio_guidance_scale": 1,
               "activated_loras": [FUSIONX], "loras_multipliers": "1", "seed": 42}
         if two:
@@ -149,8 +150,8 @@ if MODE == "render":
         frame = ASSETS / "frames" / f"shot_{s['id']}.png"
         st = {"model_type": "i2v_fusionix",
               "prompt": f"{STYLE}. {s.get('visual', '')}. {s.get('motion', '')}. Dynamic, expressive animation.",
-              "resolution": f"{W}x{H}", "image_prompt_type": "S", "image_start": str(frame),
-              "video_length": 81, "num_inference_steps": 8, "guidance_scale": 1, "seed": 42}
+              "resolution": f"{RW}x{RH}", "image_prompt_type": "S", "image_start": str(frame),
+              "video_length": 49, "num_inference_steps": 6, "guidance_scale": 1, "seed": 42}
         log(f"shot {s['id']}: motion")
         generate(st, OUT / f"shot_{s['id']}.mp4")
     log("render done")

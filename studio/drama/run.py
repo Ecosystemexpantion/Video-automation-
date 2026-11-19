@@ -37,7 +37,7 @@ def refs(sp_path, out_dir):
 
 def push(sp_path, mode, slug, shard=0, shards=1, dataset=""):
     d = Path("kernel_" + slug); shutil.rmtree(d, ignore_errors=True); d.mkdir()
-    cfg = {"mode": mode, "shard": shard, "shards": shards, "screenplay": json.load(open(sp_path)), "steps": 6}
+    cfg = {"mode": mode, "shard": shard, "shards": shards, "screenplay": json.load(open(sp_path)), "steps": 4}
     (d / "drama.py").write_text((HERE / ("sound_kernel.py" if mode == "sound" else "kernel_template.py")).read_text().replace("__CFG_JSON__", json.dumps(cfg)))
     user = kuser()
     meta = {"id": f"{user}/{slug}", "title": slug, "code_file": "drama.py", "language": "python",
@@ -124,7 +124,7 @@ def assemble(sp_path, shots_dir, out_path, sound_dir=""):
         labels = "".join(m[m.rindex("["):] for m in mix)
         fc = ";".join(mix) + f";{labels}amix=inputs={len(mix)}:duration=longest:normalize=0[aout]"
         cmd += ["-filter_complex", fc, "-map", "0:v", "-map", "[aout]", "-t", f"{vdur:.3f}",
-                "-vf", "scale=832:480:force_original_aspect_ratio=decrease,pad=832:480:(ow-iw)/2:(oh-ih)/2,fps=25",
+                "-vf", "scale=832:480:force_original_aspect_ratio=decrease:flags=lanczos,pad=832:480:(ow-iw)/2:(oh-ih)/2,fps=25",
                 "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-ar", "44100", "-ac", "2", str(norm)]
         sh(cmd)
         dur = float(sh(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(norm)]).stdout)
