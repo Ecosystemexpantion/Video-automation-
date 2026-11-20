@@ -38,7 +38,7 @@ def refs(sp_path, out_dir):
 def push(sp_path, mode, slug, shard=0, shards=1, dataset=""):
     d = Path("kernel_" + slug); shutil.rmtree(d, ignore_errors=True); d.mkdir()
     cfg = {"mode": mode, "shard": shard, "shards": shards, "screenplay": json.load(open(sp_path)), "steps": 4}
-    (d / "drama.py").write_text((HERE / ("sound_kernel.py" if mode == "sound" else "kernel_template.py")).read_text().replace("__CFG_JSON__", json.dumps(cfg)))
+    (d / "drama.py").write_text((HERE / {"sound": "sound_kernel.py", "voicetest": "voice_test_kernel.py"}.get(mode, "kernel_template.py")).read_text().replace("__CFG_JSON__", json.dumps(cfg)))
     user = kuser()
     meta = {"id": f"{user}/{slug}", "title": slug, "code_file": "drama.py", "language": "python",
             "kernel_type": "script", "is_private": True, "enable_gpu": True, "enable_internet": True}

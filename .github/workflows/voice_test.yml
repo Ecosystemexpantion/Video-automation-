@@ -1,0 +1,44 @@
+name: Drama Voice Test (Kaggle GPU)
+
+on:
+  workflow_dispatch:
+    inputs:
+      design_run:
+        description: "Drama run id whose screenplay + voice refs to use"
+        default: "44130254303"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: sudo apt-get install -y -qq ffmpeg && pip install -q "kaggle>=2.0" six
+      - uses: actions/download-artifact@v4
+        with:
+          name: design
+          run-id: ${{ github.event.inputs.design_run }}
+          github-token: ${{ github.token }}
+      - name: Run voices on Kaggle
+        run: |
+          python studio/drama/run.py push screenplay.json voicetest davis-voice-test 0 1 davis-drama-assets
+          python studio/drama/run.py wait davis-voice-test 100
+      - name: Publish samples
+        if: always()
+        run: |
+          python studio/drama/run.py fetch davis-voice-test vt
+          for W in vt/out/*.wav; do
+            N=voicetest-$(basename "$W" .wav).mp3
+            ffmpeg -loglevel error -y -i "$W" -af loudnorm=I=-16 -b:a 160k "$N"
+            gh release upload davis-videos "$N" --clobber
+            echo "SAMPLE: https://github.com/${{ github.repository }}/releases/download/davis-videos/$N"
+          done
