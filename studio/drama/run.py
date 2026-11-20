@@ -21,18 +21,50 @@ def kuser():
     return sh([sys.executable, "-c", "from kaggle.api.kaggle_api_extended import KaggleApi as K; a=K(); a.authenticate(); print(a.get_config_value('username') or '')"]).stdout.strip()
 
 
+# Distinct-voice casting: every character gets a different base voice AND a different
+# pitch / pace, so no two characters sound alike (Chatterbox/OmniVoice then clone these).
+POOL = [  # (kokoro voice, gender, accent)
+    ("bm_george", "m", "british"), ("am_fenrir", "m", "american"), ("af_bella", "f", "american"),
+    ("bf_emma", "f", "british"), ("am_puck", "m", "american"), ("af_nicole", "f", "american"),
+    ("bm_fable", "m", "british"), ("am_michael", "m", "american"), ("af_heart", "f", "american"),
+    ("bf_isabella", "f", "british"), ("am_echo", "m", "american"), ("af_sky", "f", "american"),
+]
+
+
+def cast(c):
+    """Return (gender, pitch_semitones, speed) from the character's voice tag and description."""
+    d = (c.get("voice", "") + " " + c.get("look", "") + " " + c.get("name", "")).lower()
+    g = "f" if any(w in d for w in ("female", "girl", "woman", "she ", "her ", "lady")) else "m"
+    if any(w in d for w in ("child", "kid", "little", "baby", "tiny", "young", "nervous")):
+        return g, 4.0, 1.08          # small and high
+    if any(w in d for w in ("grump", "old", "elder", "deep", "gruff", "spiky", "grandpa")):
+        return g, -3.0, 0.92         # low and slow
+    if any(w in d for w in ("proud", "dramatic", "pompous", "royal", "vain")):
+        return g, -1.0, 0.97         # rich, theatrical
+    return g, 0.0, 1.0
+
+
 def refs(sp_path, out_dir):
-    """One Kokoro reference clip per character so Chatterbox gives each a distinct, stable voice."""
     import numpy as np, soundfile as sf
     from kokoro_onnx import Kokoro
     k = Kokoro(str(ROOT / "kokoro-v1.0.onnx"), str(ROOT / "voices-v1.0.bin"))
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     text = "You will not believe what happened today. I am telling you, this changes everything, so listen carefully."
+    used, accents = set(), []
     for c in json.load(open(sp_path))["characters"]:
-        v = VOICE.get(c.get("voice", ""), "am_michael" if "male" in c.get("voice", "") else "af_heart")
-        s, r = k.create(text, voice=v, speed=1.0, lang="en-us")
-        sf.write(out / f"{c['id']}.wav", np.asarray(s, dtype="float32"), r)
-        print("voice ref", c["id"], v)
+        g, semis, speed = cast(c)
+        # prefer an unused voice of the right gender whose accent differs from the previous pick
+        options = [v for v in POOL if v[0] not in used and v[1] == g] or [v for v in POOL if v[0] not in used]
+        options.sort(key=lambda v: v[2] in accents[-1:])
+        v = options[0]; used.add(v[0]); accents.append(v[2])
+        s, r = k.create(text, voice=v[0], speed=speed, lang="en-gb" if v[2] == "british" else "en-us")
+        raw = out / f"{c['id']}_raw.wav"
+        sf.write(raw, np.asarray(s, dtype="float32"), r)
+        f = 2 ** (semis / 12)  # pitch shift, duration kept
+        sh(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af",
+            f"asetrate={r}*{f:.4f},aresample={r},atempo={1/f:.4f}", str(out / f"{c['id']}.wav")])
+        raw.unlink()
+        print("voice ref", c["id"], v[0], f"{semis:+.0f} st", f"x{speed}")
 
 
 def push(sp_path, mode, slug, shard=0, shards=1, dataset=""):
