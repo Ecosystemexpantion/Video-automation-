@@ -8,7 +8,12 @@ from pathlib import Path
 
 SP = json.loads(r'''__CFG_JSON__''')["screenplay"]
 WORK = Path("/kaggle/working"); OUT = WORK / "out"; OUT.mkdir(exist_ok=True)
-REFS = Path(sorted(glob.glob("/kaggle/input/**/refs", recursive=True))[0])
+_cid = SP["characters"][0]["id"]
+for _ in range(20):  # a brand-new dataset can take a moment to mount
+    hits = sorted(glob.glob(f"/kaggle/input/**/{_cid}.wav", recursive=True))
+    if hits: break
+    print("waiting for refs...", glob.glob("/kaggle/input/**", recursive=True)[:30], flush=True); time.sleep(30)
+REFS = Path(hits[0]).parent
 t0 = time.time()
 def log(m): print(f"[{(time.time()-t0)/60:5.1f} min] {m}", flush=True)
 def sh(c): log("$ " + c); return subprocess.run(c, shell=True).returncode
