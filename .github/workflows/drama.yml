@@ -7,6 +7,10 @@ on:
         description: "What the film is about"
         required: false
         default: ""
+      job_id:
+        description: "Davis Studio app job id (set by the app)"
+        required: false
+        default: ""
       design_run:
         description: "Reuse the design from this earlier run id (skips script + design)"
         required: false
@@ -29,6 +33,8 @@ env:
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   GH_TOKEN: ${{ github.token }}
   TAG: drama-${{ github.run_number }}
+  JOB_ID: ${{ github.event.inputs.job_id }}
+  STATUS: python3 studio/drama/job_status.py
 
 jobs:
   script-and-design:
@@ -48,12 +54,16 @@ jobs:
           curl -sSfL -o kokoro-v1.0.onnx "$base/kokoro-v1.0.onnx"
           curl -sSfL -o voices-v1.0.bin "$base/voices-v1.0.bin"
       - name: Claude writes the screenplay
+        env:
+          INPUT_BRIEF: ${{ github.event.inputs.brief }}
         run: |
-          BRIEF="${{ github.event.inputs.brief }}"
+          $STATUS running 5 "Claude is writing the screenplay" || true
+          BRIEF="$INPUT_BRIEF"
           [ -z "$BRIEF" ] && BRIEF="$(cat studio/drama/brief.txt)"
           python studio/drama/write_script.py "$BRIEF" screenplay.json
       - name: Design characters, locations and shot frames (GPU)
         run: |
+          JOB_TITLE="$(python -c "import json;print(json.load(open('screenplay.json'))['title'])")" $STATUS running 10 "Designing characters and sets" || true
           python studio/drama/run.py push screenplay.json images davis-drama-design
           python studio/drama/run.py wait davis-drama-design 100
           python studio/drama/run.py fetch davis-drama-design design
@@ -96,6 +106,7 @@ jobs:
           python studio/drama/run.py dataset assets davis-drama-assets
       - name: Render all shots on two GPUs in parallel
         run: |
+          $STATUS running 30 "Animating every shot with lip sync (the long part)" || true
           python studio/drama/run.py push screenplay.json render davis-drama-render-0 0 2 davis-drama-assets
           python studio/drama/run.py push screenplay.json render davis-drama-render-1 1 2 davis-drama-assets
           python studio/drama/run.py wait davis-drama-render-0 davis-drama-render-1 340
@@ -136,6 +147,7 @@ jobs:
           github-token: ${{ github.token }}
       - name: Sound effects (MMAudio) and score (MusicGen) on GPU
         run: |
+          $STATUS running 85 "Adding sound effects and music" || true
           python studio/drama/run.py dataset shots davis-drama-shots
           python studio/drama/run.py push screenplay.json sound davis-drama-sound 0 1 davis-drama-shots
           python studio/drama/run.py wait davis-drama-sound 180
@@ -177,5 +189,10 @@ jobs:
       - name: Edit the film
         run: |
           python3 studio/drama/run.py assemble screenplay.json shots "$TAG.mp4" sound
+          cp "$TAG.mp4" film.mp4
           gh release upload davis-videos "$TAG.mp4" --clobber
+          $STATUS done 100 "Done" film.mp4
           echo "FILM: https://github.com/${{ github.repository }}/releases/download/davis-videos/$TAG.mp4"
+      - name: Tell the app it failed
+        if: failure()
+        run: $STATUS failed 0 "The film could not be finished. Open the run log for details." || true

@@ -331,6 +331,23 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Animated drama: screenplay, characters, lip-synced dialogue, fight, sound and music. */
+    fun createDrama(story: String) {
+        if (createState is CreateState.Starting) return
+        val id = newJobId()
+        createState = CreateState.Starting
+        viewModelScope.launch {
+            try {
+                gh().dispatch("drama.yml", mapOf("job_id" to id, "brief" to story.trim().take(4000)))
+                addPending(id, "drama", story.trim().take(60), story.trim())
+                createState = CreateState.Idle
+                showJob(id)
+            } catch (e: Exception) {
+                createState = CreateState.Failed(e.message ?: "Could not start the film.")
+            }
+        }
+    }
+
     /** A fresh take on an existing video, optionally with new directions. */
     fun remix(source: Job, notes: String) {
         val id = newJobId()

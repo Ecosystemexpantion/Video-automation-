@@ -62,11 +62,11 @@ fun CreateScreen(vm: AppViewModel, onOpenLibrary: () -> Unit) {
         Spacer(Modifier.height(16.dp))
 
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            listOf("Replicate a video", "From a topic").forEachIndexed { i, label ->
+            listOf("Replicate", "Topic", "Drama").forEachIndexed { i, label ->
                 SegmentedButton(
                     selected = mode == i,
                     onClick = { mode = i; vm.clearCreateError() },
-                    shape = SegmentedButtonDefaults.itemShape(i, 2),
+                    shape = SegmentedButtonDefaults.itemShape(i, 3),
                 ) { Text(label) }
             }
         }
@@ -107,12 +107,20 @@ fun CreateScreen(vm: AppViewModel, onOpenLibrary: () -> Unit) {
                     }
                 }
             }
+        } else if (mode == 2) {
+            SectionLabel("Story")
+            OutlinedTextField(topic, { topic = it },
+                placeholder = { Text("e.g. Fruit characters argue in a kitchen at night over who is the star of the fruit salad, a small slapstick fight, warm ending") },
+                modifier = Modifier.fillMaxWidth(), minLines = 4)
+            Text("Animated film with talking characters, lip sync, sound effects and music. About 2 minutes long.",
+                color = TextLow, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
         } else {
             SectionLabel("Topic")
             OutlinedTextField(topic, { topic = it }, placeholder = { Text("e.g. 3 ways AI saves small businesses time") },
                 modifier = Modifier.fillMaxWidth(), minLines = 2)
         }
 
+        if (mode != 2) {
         SectionLabel("Directions (optional)")
         OutlinedTextField(notes, { notes = it },
             placeholder = { Text(if (mode == 0) "e.g. Same style but about selling on Selar" else "e.g. Funny tone, end with a question") },
@@ -130,6 +138,7 @@ fun CreateScreen(vm: AppViewModel, onOpenLibrary: () -> Unit) {
                 }
             }
         }
+        }
 
         Spacer(Modifier.height(20.dp))
         when (state) {
@@ -144,16 +153,20 @@ fun CreateScreen(vm: AppViewModel, onOpenLibrary: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         Button(
             onClick = {
-                if (mode == 0) vm.picked?.let { vm.replicate(it.uri, notes, voice) }
-                else vm.createFromTopic(topic, notes, voice)
+                when (mode) {
+                    0 -> vm.picked?.let { vm.replicate(it.uri, notes, voice) }
+                    1 -> vm.createFromTopic(topic, notes, voice)
+                    else -> vm.createDrama(topic)
+                }
             },
             enabled = !busy && (if (mode == 0) vm.picked != null else topic.isNotBlank()),
             modifier = Modifier.fillMaxWidth().height(54.dp),
         ) {
             Icon(Icons.Filled.AutoAwesome, null); Spacer(Modifier.width(8.dp))
-            Text(if (mode == 0) "Replicate this video" else "Generate video", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(when (mode) { 0 -> "Replicate this video"; 1 -> "Generate video"; else -> "Make the film" }, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
-        Text("OpenMontage produces it in the cloud in about 15–30 minutes. You can close the app; it keeps going.",
+        Text(if (mode == 2) "Rendered on free cloud GPUs in about 5–6 hours. You can close the app; it keeps going."
+            else "OpenMontage produces it in the cloud in about 15–30 minutes. You can close the app; it keeps going.",
             color = TextLow, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp))
 
         val active = vm.jobs.filter { it.isActive }
